@@ -1,6 +1,9 @@
 package com.example.android.asobisugi;
 
 import android.app.AppOpsManager;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -12,6 +15,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+
+import com.firebase.jobdispatcher.Driver;
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.GooglePlayDriver;
+import com.firebase.jobdispatcher.Job;
+
+import static com.firebase.jobdispatcher.Lifetime.UNTIL_NEXT_BOOT;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +55,21 @@ public class MainActivity extends AppCompatActivity {
                 NotificationUtils.remindUserBecauseCharging(MainActivity.this);
             }
         });
+
+        Driver driver = new GooglePlayDriver(this);
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
+
+        Job myJob = dispatcher.newJobBuilder()
+                .setService(MyJobService.class) // the JobService that will be called
+                .setTag("") // uniquely identifies the job //ToDo: what tag? add constant variable
+                .setRecurring(false) // don't recur(one-off job)
+                .setLifeTime(UNTIL_NEXT_BOOT) //don't persist past a device reboot
+                .setTrigger(900) // start between 0 and 15minutes
+                .setReplaceCurrent(true)// replace a current job with the same tag if one exists
+                .build();
+        dispatcher.schedule(myJob);
+
+        // ToDo: add [dispatcher.cancel(tag);] to trigger cancel button was pressed
     }
 
     public void findLauncherApp() {
