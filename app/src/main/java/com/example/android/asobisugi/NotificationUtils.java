@@ -25,7 +25,7 @@ public class NotificationUtils {
     private static final int CANCEL_COUNT_TIME_PENDING_INTENT_ID = 3272;
 
 
-    public static void remindUserBecauseCharging(Context context) {
+    public static void remindUserBecauseCounting(Context context) {
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 

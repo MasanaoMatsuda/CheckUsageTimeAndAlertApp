@@ -24,10 +24,6 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".CountTimeIntentService"
-            android:exported="false"/>
-        <service android:name=".CancelCountIntentService"
-            android:exported="false"/>
         <service
             android:name=".MyJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"

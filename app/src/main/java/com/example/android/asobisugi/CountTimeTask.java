@@ -18,7 +18,6 @@ import static android.app.usage.UsageEvents.Event.MOVE_TO_FOREGROUND;
 
 public class CountTimeTask {
 
-    public static final String ACTION_COUNT_TIME = "count-time";
     public static final String ACTION_CANCEL_COUNT_TIME = "cancel-count-time";
 
     // 間隔が短すぎるループを停止させる処理に使う定数(10秒に設定）
@@ -46,43 +45,36 @@ public class CountTimeTask {
     public static boolean mShouldContinue = true;
 
 
-    public static void executeTask(
-            Context context, String action, String launcherPackName, Intent service) {
+    public static void executeTask(Context context, String launcherPackName) {
 
-        if (action == ACTION_COUNT_TIME) {
             mLauncherPackageName = launcherPackName;
 
             mStartTime = System.currentTimeMillis();
 
             while (mNumOfType1 == 0) {
                 Log.d("Check", "@First while loop@");
-                checkCancelButtonPressed(context, service);
 
                 try {
                     delayExecute();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                checkCancelButtonPressed(context, service);
                 extractUsage(context);
             }
 
             Log.d("Check", "@First while loop@を抜けました");
-            checkCancelButtonPressed(context, service);
 
             checkUsage();
 
 
             while (mThreadSleepTime > 0) {
                 Log.d("Check", "@Second while loop@");
-                checkCancelButtonPressed(context, service);
 
                 try {
                     delayExecute();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                checkCancelButtonPressed(context, service);
                 extractUsage(context);
                 checkUsage();
             }
@@ -92,12 +84,7 @@ public class CountTimeTask {
 
             mThreadSleepTime = mPreferenceTime;
             resetField();
-        } else if (ACTION_CANCEL_COUNT_TIME.equals(action)) {
-            mShouldContinue = false;
-            Log.d("Check", "キャンセルされました。mShouldContinueをfalseに設定します");
-            NotificationUtils.clearAllNotifications(context);
         }
-    }
 
     private static void extractUsage(Context context) {
         resetField();
