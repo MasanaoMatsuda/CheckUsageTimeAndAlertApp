@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/settings_title">
+
+    <ListPreference
+        android:defaultValue="@string/pref_limit_time_30_value"
+        android:entries="@array/pref_limit_time_option_labels"
+        android:entryValues="@array/pref_limit_time_option_values"
+        android:key="@string/pref_limit_time_key"
+        android:title="@string/pref_limit_time_label"/>
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_youtube_default"
+        android:key="@string/pref_youtube_key"
+        android:inputType="number"
+        android:selectAllOnFocus="true"
+        android:title="@string/pref_youtube_label"/>
+
+</PreferenceScreen>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="pref_limit_time_option_labels">
+        <item>@string/pref_limit_time_label_15</item>
+        <item>@string/pref_limit_time_label_30</item>
+        <item>@string/pref_limit_time_label_45</item>
+        <item>@string/pref_limit_time_label_60</item>
+    </array>
+
+    <array name="pref_limit_time_option_values">
+        <item>@string/pref_limit_time_15_value</item>
+        <item>@string/pref_limit_time_30_value</item>
+        <item>@string/pref_limit_time_45_value</item>
+        <item>@string/pref_limit_time_60_value</item>
+    </array>
+</resources>

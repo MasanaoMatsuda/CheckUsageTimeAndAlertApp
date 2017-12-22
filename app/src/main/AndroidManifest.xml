@@ -24,9 +24,16 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".CountTimeIntentService"
-            android:exported="false"/>
-        <service android:name=".CancelCountIntentService"
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings_title"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.android.asobisugi.MainActivity"/>
+        </activity>
+
+        <service android:name=".CountTimeService"
             android:exported="false"/>
 
     </application>

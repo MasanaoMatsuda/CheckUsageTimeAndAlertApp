@@ -25,7 +25,7 @@ public class NotificationUtils {
     private static final int CANCEL_COUNT_TIME_PENDING_INTENT_ID = 3272;
 
 
-    public static void remindUserBecauseCharging(Context context) {
+    public static void remindUserBecauseCounting(Context context) {
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -48,7 +48,6 @@ public class NotificationUtils {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(
                         context.getString(R.string.on_going_reminder_notification_body)))
                 .setContentIntent(contentIntent(context))
-                .addAction(cancelCountTimeAction(context))
                 .setAutoCancel(true);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
@@ -57,18 +56,6 @@ public class NotificationUtils {
         }
         notificationManager.notify(
                 ON_GOING_REMINDER_NOTIFICATION_ID, notificationBuilder.build());
-    }
-
-    private static NotificationCompat.Action cancelCountTimeAction(Context context) {
-        Intent intent = new Intent(context, MainActivity.class)
-                .setAction(CountTimeTask.ACTION_CANCEL_COUNT_TIME);
-        PendingIntent cancelPendingIntent = PendingIntent.getService(context,
-                CANCEL_COUNT_TIME_PENDING_INTENT_ID,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        return new NotificationCompat.Action(R.drawable.ic_delete_forever_black_24dp,
-                "キャンセル",
-                cancelPendingIntent);
     }
 
     private static PendingIntent contentIntent(Context context) {
