@@ -4,8 +4,13 @@ import android.app.Service;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStatsManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -28,8 +33,9 @@ public class CountTimeService extends Service {
     private Timer mTimer = null;
     public Handler mHandler;
 
-    private long mPreferenceTime = 1000 * 60;
-    private long mThreadSleepTime = mPreferenceTime;
+    private SharedPreferences mSharedPreferences;
+    private long mPreferenceTime = 1000 * 5; // ToDo: 1000 * 60 に戻す（１分）
+    private long mThreadSleepTime;
     private long mTotalTime;
     private long mWaitingTime;
     private long mUsingTime;
@@ -51,6 +57,7 @@ public class CountTimeService extends Service {
     private long mSumOfType1 = 0;
     private long mSumOfType2 = 0;
 
+    // LauncherアプリとSystemUIをextractUsage()にてカウント対象外とするための変数
     private String mLauncherPackageName;
     private final String SYSTEM_UI = "com.android.systemui";
 
@@ -58,17 +65,24 @@ public class CountTimeService extends Service {
 
     @Override
     public void onCreate() {
+        Log.i(TAG, "@onCreate: 変数の初期化処理");
+
+        // 変数の初期化処理
         mHandler = new Handler();
         dateFormat = new SimpleDateFormat("yyyy/M/d H:mm:ss.SS", Locale.JAPAN);
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mPreferenceTime = readPreferenceTime(mSharedPreferences);
+        mThreadSleepTime = mPreferenceTime;
         mStartTime = System.currentTimeMillis();
+        findLauncherApp();
     }
 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mLauncherPackageName = intent.getPackage();
-        mTimer = new Timer(true);
+        Log.i(TAG, "@onStartCommand: バックグラウンド処理");
 
+        mTimer = new Timer(true);
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -80,6 +94,8 @@ public class CountTimeService extends Service {
                 });
             }
         }, mThreadSleepTime);
+
+        startForeground(1, NotificationUtils.remindUserBecauseCounting(this));
         return START_STICKY;
     }
 
@@ -92,47 +108,53 @@ public class CountTimeService extends Service {
 
     @Override
     public void onDestroy() {
+        Log.i(TAG, "@onDestroy");
+
         if (mTimer != null) {
             mTimer.cancel();
             mTimer = null;
         }
-        Toast.makeText(this, TAG + " onDestroy", Toast.LENGTH_SHORT).show();
+    // MainActivityへBroadcastを飛ばす処理をTrigger
+        String message = "CountTimeServiceタスク終了 -> UI更新どうぞ";
+        NotificationUtils.clearAllNotifications(CountTimeService.this);
+        sendBroadCast(message);
     }
 
+
     /*
-* Loop処理のコントローラー
-* */
+    * Loop処理のコントローラー
+    * */
     private void executeTask() {
-        Log.i(TAG, "executeTask" +
-                "\nThread ID: " + Thread.currentThread().getId());
+        Log.i(TAG, "@executeTask: ループ処理開始");
 
         extractUsage();
         calculateUsingTime();
         if (mThreadSleepTime > 10) {
             setTimerAgain();
         } else {
+            Log.d(TAG, "@Youtube");
+
+            String value = mSharedPreferences.getString(
+                    getString(R.string.pref_youtube_key),
+                    getResources().getString(R.string.pref_youtube_default));
+
             Intent intent = new Intent(Intent.ACTION_SEARCH)
                     .setPackage("com.google.android.youtube")
-                    .putExtra("query",
-                            "https://www.youtube.com/watch?v=g9hwjQBQFIo")
+                    .putExtra("query", value)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+            onDestroy();
+            Log.d(TAG, "@タスク終了");
         }
-
-        Log.d("Check", "@Loop@を抜けました。Serviceタスクが終了します。" +
-                "\nThread ID: " + Thread.currentThread().getId());
     }
 
 
     /*
-* アプリがForegroundまたはBackgroundになったときのTimeStampを足し合わせるメソッド。
-* Type1(Foreground)とType2(Background)の【SumOf】を算出する処理
-* */
+    * アプリがForegroundまたはBackgroundになったときのTimeStampを足し合わせるメソッド。
+    * Type1(Foreground)とType2(Background)の【SumOf】を算出する処理
+    * */
     private void extractUsage() {
-        Log.d("Check", "extractUsageメソッドに入りました" +
-                "\n→ mSumOfType1:" + mSumOfType1 + " mSumOfType2:" + mSumOfType2 +
-                "\n→ mNumOfType1:" + mNumOfType1 + " mNumOfType2:" + mNumOfType2 +
-                "\nThread ID: " + Thread.currentThread().getId());
+        Log.d(TAG, "@extractUsage: usageEventsの仕分けを開始");
 
         resetField();
 
@@ -140,17 +162,12 @@ public class CountTimeService extends Service {
         mEndTime = System.currentTimeMillis();
         UsageEvents usageEvents = stats.queryEvents(mStartTime, mEndTime);
 
-        Log.d("Check",
-                "\nstartTime: " + dateFormat.format(mStartTime)
-                        + "\nendTime: " + dateFormat.format(mEndTime));
-
         while (usageEvents.hasNextEvent()) {
             UsageEvents.Event event = new android.app.usage.UsageEvents.Event();
             usageEvents.getNextEvent(event);
             long timestamp = event.getTimeStamp();
             int type = event.getEventType();
             String packageName = event.getPackageName();
-            String className = event.getClassName();
             long timeStamp = event.getTimeStamp();
 
             // LauncherSystemとSystemUIは、挙動が機種によって異なるため記録を除外。
@@ -166,18 +183,16 @@ public class CountTimeService extends Service {
                     mCheckContinuousType2 = true;
                     mSumOfType1 += timestamp;
                     mNumOfType1 += 1;
-                    Log.d("Check", "added time because type is: " + type +
+                    Log.d(TAG, "Added.[" + type + "]" +
                             "\nPackageName is :" + packageName +
-                            "\nclassName is :" + className +
                             "\nTimeStamp is :" + dateFormat.format(timeStamp));
                 } else {
-                    Log.d("Check", "Skipped because of continuous. " +
-                            "This is: " + type +
+                    Log.d(TAG, "Skipped because of continuous. " + "[" + type + "]" +
                             "\nPackageName is :" + packageName);
                 }
             } else if (type == MOVE_TO_BACKGROUND) {
+                // 【バグ対策】本アプリが最初にバックグラウンドに入った時間を記録
                 if (mTheFirstType2) {
-                    Log.d("Check", "本アプリが開始後初めてBackgroundに入った時間");
                     mTheFirstType2 = false;
                     MyAppGoBackgroundTime = timeStamp;
                 }
@@ -187,7 +202,7 @@ public class CountTimeService extends Service {
                     mCheckContinuousType1 = true;
                     mSumOfType2 += timestamp;
                     mNumOfType2 += 1;
-                    Log.d("Check", "added time because type is: " + type +
+                    Log.d(TAG, "Added.[" + type + "]" +
                             "\nPackageName is :" + packageName +
                             "\nTimeStamp is :" + dateFormat.format(timeStamp));
                 } else if (!mCheckContinuousType2) {
@@ -195,7 +210,7 @@ public class CountTimeService extends Service {
                             "\nPackageName is :" + packageName);
                 }
             } else {
-                Log.d("Check", "skipped because type is: " + type +
+                Log.d(TAG, "Skipped because of continuous. " + "[" + type + "]" +
                         "\nPackageName is :" + packageName);
             }
         }
@@ -206,26 +221,25 @@ public class CountTimeService extends Service {
     * 端末の使用時間（mUsingTime）の算出をするメソッド。
     * */
     private void calculateUsingTime() {
+        Log.d(TAG, "@calculateUsingTime: 使用時間の算出");
 
         if (mNumOfType1 == 0) {
-            Log.d("Check", "未使用です。もう一周待ちます。" +
-                    "\nThread ID: " + Thread.currentThread().getId());
+            Log.d(TAG, "未使用のため後続処理を省略、setTimerAgain()へ遷ります。");
             return;
         }
 
-        Log.d("Check",
-                "checkUsageメソッドに入りました" +
-                        "\n→ mSumOfType1:" + mSumOfType1 + " mSumOfType2:" + mSumOfType2 +
-                        "\n→ mNumOfType1:" + mNumOfType1 + " mNumOfType2:" + mNumOfType2);
+        Log.d(TAG, "checkUsageメソッドに入りました" +
+                "\n→ mSumOfType1:" + mSumOfType1 + " mSumOfType2:" + mSumOfType2 +
+                "\n→ mNumOfType1:" + mNumOfType1 + " mNumOfType2:" + mNumOfType2);
 
         if (mNumOfType1 < mNumOfType2) {
             mWaitingTime = (mSumOfType1 + mEndTime) - mSumOfType2
                     + (MyAppGoBackgroundTime - mStartTime);
-            Log.d("Check", "補正します");
+            Log.d(TAG, "補正します");
         } else {
             mWaitingTime = mSumOfType1 - mSumOfType2
                     + (MyAppGoBackgroundTime - mStartTime);
-            Log.d("Check", "補正しません");
+            Log.d(TAG, "補正しません");
         }
 
         mTotalTime = mEndTime - mStartTime;
@@ -233,23 +247,21 @@ public class CountTimeService extends Service {
 
         mThreadSleepTime = (mPreferenceTime - mUsingTime);
 
-        Log.d("Check", "TotalTime: " + mTotalTime / 1000 +
-                "\nWaiting time: " + mWaitingTime / 1000 +
+        Log.d(TAG, "開始時間: " + dateFormat.format(mStartTime) +
+                "\n終了時間" + dateFormat.format(mEndTime) +
+                "\n総集計時間: " + mTotalTime / 1000 +
+                "\n使用時間: " + mUsingTime / 1000 +
+                "\n未使用時間: " + mWaitingTime / 1000 +
                 "\nmSumOfType1" + mSumOfType1 +
-                "\nmSumOfType2" + mSumOfType2 +
-                "\nmEndTime" + mEndTime + "[" + dateFormat.format(mEndTime) + "]");
+                "\nmSumOfType2" + mSumOfType2);
+
 
         if (mThreadSleepTime < MIN_LOOP_INTERVAL) {
-            Log.d("Check",
-                    "mThreadSleepTimeは" + mThreadSleepTime / 1000 + "です。" +
-                            "\nループ間隔が" + MIN_LOOP_INTERVAL / 1000 + "秒以下です。");
+            Log.d(TAG, "待機時間: " + mThreadSleepTime / 1000 +
+                    "\nループ間隔が" + MIN_LOOP_INTERVAL / 1000 + "秒以下のため停止します。");
             mThreadSleepTime = 0;
-            Log.d("Check",
-                    "mThreadSleepTimeを" + mThreadSleepTime + "にし停止します。");
         } else {
-            Log.d("Check",
-                    "使用時間です: 使用時間は" + mUsingTime / 1000 + "秒" +
-                            "\n待機時間を " + mThreadSleepTime / 1000 + "秒に設定します");
+            Log.d(TAG, "待機時間: " + mThreadSleepTime / 1000 + " setTimerAgain()へ遷移");
         }
     }
 
@@ -259,6 +271,8 @@ public class CountTimeService extends Service {
 * Timer.schedule()を使うことでService処理をStopボタンから中止できる。
 * */
     private void setTimerAgain() {
+        Log.d(TAG, "@setTimerAgain: 待機開始: " + mThreadSleepTime / 1000 + "秒");
+
         mTimer = new Timer(true);
         mTimer.schedule(new TimerTask() {
             @Override
@@ -266,9 +280,6 @@ public class CountTimeService extends Service {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d(TAG, "Timer run" +
-                                "\nThread ID: " + Thread.currentThread().getId());
-
                         executeTask();
                     }
                 });
@@ -276,7 +287,9 @@ public class CountTimeService extends Service {
         }, mThreadSleepTime);
     }
 
-
+    /*
+    * 【HelperMethod】
+    * */
     private void resetField() {
         mSumOfType1 = 0;
         mSumOfType2 = 0;
@@ -286,4 +299,47 @@ public class CountTimeService extends Service {
         mCheckContinuousType2 = true;
     }
 
+    /*
+    *  【HelperMethod】
+    *  Launcherアプリのパッケージ名を取得
+    *  （UsageStatsの使用状況判定でLauncherAppをはじかないと、バグが発生するため）
+    * */
+    public void findLauncherApp() {
+        // パッケージマネージャーの作成
+        PackageManager packageManager = getPackageManager();
+
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+
+        ResolveInfo resolveInfo = packageManager.resolveActivity(intent, 0);
+        ActivityInfo activityInfo = resolveInfo.activityInfo;
+        mLauncherPackageName = activityInfo.packageName; // パッケージ名
+        Log.d(TAG, "@findLauncherApp: " + mLauncherPackageName);
+    }
+
+
+    /*
+    * 【HelperMethod】
+    * 使用制限時間をセットするため、Preferenceから分数を読み取る処理
+    * */
+    private long readPreferenceTime(SharedPreferences sharedPreferences) {
+        String originValue = sharedPreferences.getString(
+                getString(R.string.pref_limit_time_key),
+                getResources().getString(R.string.pref_limit_time_30_value));
+        String limitValue = originValue.split("分")[0];
+        long limitTime = Long.parseLong(limitValue);
+        return mPreferenceTime * limitTime;
+    }
+
+
+    /*
+    * ServiceからMainActivityへのBroadcast（UIの更新を依頼）
+    * */
+    protected void sendBroadCast(String message) {
+
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.putExtra("message", message);
+        broadcastIntent.setAction("UPDATE_ACTION");
+        getBaseContext().sendBroadcast(broadcastIntent);
+    }
 }

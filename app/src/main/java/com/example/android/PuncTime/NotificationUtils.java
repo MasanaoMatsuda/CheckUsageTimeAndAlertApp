@@ -23,10 +23,9 @@ public class NotificationUtils {
     private static final String ON_GOING_REMINDER_NOTIFICATION_CHANNEL_ID =
             "on_going_notification_channel";
     private static final int ON_GOING_REMINDER_PENDING_INTENT_ID = 2482;
-    private static final int CANCEL_COUNT_TIME_PENDING_INTENT_ID = 3272;
 
 
-    public static void remindUserBecauseCounting(Context context) {
+    public static Notification remindUserBecauseCounting(Context context) {
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -60,8 +59,11 @@ public class NotificationUtils {
         Notification notification = notificationBuilder.build();
         notification.flags = Notification.FLAG_NO_CLEAR;
 
+        return notification;
+/*
         notificationManager.notify(
                 ON_GOING_REMINDER_NOTIFICATION_ID, notification);
+*/
     }
 
     private static PendingIntent contentIntent(Context context) {

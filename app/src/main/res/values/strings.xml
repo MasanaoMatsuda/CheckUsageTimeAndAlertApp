@@ -25,7 +25,7 @@
     <!-- Strings For Youtube Preference [CHAR LIMIT=30] -->
     <string name="pref_youtube_label">Youtubeの楽曲（URLか曲名を入力）</string>
     <string name="pref_youtube_key" translatable="false">alarm_youtube_sound</string>
-    <string name="pref_youtube_default" translatable="false">https://www.youtube.com/watch?v=i95Nlb7kiPo&amp;list=RDi95Nlb7kiPo"</string>
+    <string name="pref_youtube_default" translatable="false">Rita Ora - Your Song</string>
 
     <!--Notifications-->
     <string name="main_notification_channel_name">Primary</string>
