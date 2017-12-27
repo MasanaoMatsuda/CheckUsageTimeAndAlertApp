@@ -1,5 +1,6 @@
-package com.example.android.asobisugi;
+package com.example.android.PuncTime;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -54,8 +55,13 @@ public class NotificationUtils {
                 && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             notificationBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
         }
+
+        // スワイプアウトできないようにする（Service停止処理がされたときのみ通知が消せる）
+        Notification notification = notificationBuilder.build();
+        notification.flags = Notification.FLAG_NO_CLEAR;
+
         notificationManager.notify(
-                ON_GOING_REMINDER_NOTIFICATION_ID, notificationBuilder.build());
+                ON_GOING_REMINDER_NOTIFICATION_ID, notification);
     }
 
     private static PendingIntent contentIntent(Context context) {

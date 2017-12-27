@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "com.example.android.asobisugi"
+        applicationId "com.example.android.PuncTime"
         minSdkVersion 22
         targetSdkVersion 26
         versionCode 1

@@ -1,15 +1,11 @@
-package com.example.android.asobisugi;
+package com.example.android.PuncTime;
 
 import android.app.Service;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStatsManager;
 import android.content.Intent;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
-import android.os.Process;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -32,7 +28,7 @@ public class CountTimeService extends Service {
     private Timer mTimer = null;
     public Handler mHandler;
 
-    private long mPreferenceTime = 1000 * 20;
+    private long mPreferenceTime = 1000 * 60;
     private long mThreadSleepTime = mPreferenceTime;
     private long mTotalTime;
     private long mWaitingTime;

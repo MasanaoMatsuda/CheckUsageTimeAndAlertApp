@@ -1,4 +1,4 @@
-package com.example.android.asobisugi;
+package com.example.android.PuncTime;
 
 import android.app.AppOpsManager;
 import android.content.Context;
@@ -71,6 +71,8 @@ public class MainActivity extends AppCompatActivity
 
                 mButtonStart.setVisibility(View.GONE);
                 mButtonStop.setVisibility(View.VISIBLE);
+
+                NotificationUtils.remindUserBecauseCounting(MainActivity.this);
             }
         });
 

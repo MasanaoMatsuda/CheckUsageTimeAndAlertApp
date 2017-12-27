@@ -1,4 +1,4 @@
-package com.example.android.asobisugi;
+package com.example.android.PuncTime;
 
 import org.junit.Test;
 

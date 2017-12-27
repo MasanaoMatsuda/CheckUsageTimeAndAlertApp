@@ -1,7 +1,6 @@
-package com.example.android.asobisugi;
+package com.example.android.PuncTime;
 
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
