@@ -140,6 +140,7 @@ public class CountTimeService extends Service {
                     .putExtra("query", value)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+
             // MainActivityへBroadcastを飛ばす処理をTrigger
             String message = "@Message from CountTimeService[タスク終了]";
             sendBroadCast(message);

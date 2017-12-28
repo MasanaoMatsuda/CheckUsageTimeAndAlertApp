@@ -22,12 +22,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/stats_btn"
+        android:background="@color/colorAccent"
         android:text="Get Stats"/>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/stop_btn"
+        android:background="@color/colorAccent"
         android:text="Stop"/>
 
 
