@@ -12,9 +12,11 @@ import android.content.pm.ResolveInfo;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,12 +30,12 @@ public class MainActivity extends AppCompatActivity
 
     public static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final String BUTTON_STATE = "buttonState";
+    private static final float BUTTON_ELEVATION_SIZE = 12;
 
     private Button mButtonStart;
     private Button mButtonStop;
+    private FloatingActionButton mFabSettings;
     private TextView mLimitTimeTextView;
-    private TextView mYoutubeSourceTextView;
     private UpdateUiReceiver mUpdateUiReceiver;
     private boolean mCheckUsageStats;
 
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         mLimitTimeTextView = (TextView) findViewById(R.id.limit_time);
-        mYoutubeSourceTextView = (TextView) findViewById(R.id.youtube_source);
+        mFabSettings = (FloatingActionButton) findViewById(R.id.fab_settings);
         setupSharedPreferences();
 
 
@@ -97,6 +99,14 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        mFabSettings.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this,
+                        SettingsActivity.class));
+            }
+        });
+
         // Service終了後にMessageを受け取るための前処理
         mUpdateUiReceiver = new UpdateUiReceiver();
         IntentFilter mIntentFilter = new IntentFilter();
@@ -107,8 +117,8 @@ public class MainActivity extends AppCompatActivity
 
 
     /*
-        * SharedPreferenceChangeListenerをアンレジストする
-        * */
+    * SharedPreferenceChangeListenerをアンレジストする
+    * */
     @Override
     protected void onDestroy() {
         Log.i(TAG, "@onDestroy");
@@ -166,10 +176,6 @@ public class MainActivity extends AppCompatActivity
         mLimitTimeTextView.setText(sharedPreferences.getString(
                 getString(R.string.pref_limit_time_key),
                 getResources().getString(R.string.pref_limit_time_30_value)));
-        mYoutubeSourceTextView.setText(sharedPreferences.getString(
-                getString(R.string.pref_youtube_key),
-                getResources().getString(R.string.pref_youtube_default)));
-
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
     }
 
@@ -184,17 +190,17 @@ public class MainActivity extends AppCompatActivity
         if (key.equals(getString(R.string.pref_limit_time_key))) {
             mLimitTimeTextView.setText(sharedPreferences.getString(
                     key, getResources().getString(R.string.pref_youtube_default)));
-        } else if (key.equals(getString(R.string.pref_youtube_key))) {
-            mYoutubeSourceTextView.setText(sharedPreferences.getString(
-                    key, getResources().getString(R.string.pref_youtube_default)));
         }
     }
 
 
-    /*
+/*
+    */
+/*
     * 【オプションメニュー関連】
     * 設定を設置
-    * */
+    * *//*
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.i(TAG, "@onCreateOptionsMenu");
@@ -215,18 +221,38 @@ public class MainActivity extends AppCompatActivity
         }
         return super.onOptionsItemSelected(item);
     }
+*/
 
 
     private void buttonShowStartHideStop(boolean bool) {
         Log.i(TAG, "@buttonShowStartHideStop");
 
         if (bool) {
-            mButtonStop.setVisibility(View.GONE);
-            mButtonStart.setVisibility(View.VISIBLE);
+            mButtonStart.setEnabled(true);
+            mButtonStart.setTextColor(0xff4200b7);
+            mButtonStart.setElevation(
+                    convertDpToPixel(BUTTON_ELEVATION_SIZE, this));
+            mButtonStop.setEnabled(false);
+            mButtonStop.setTextColor(0xffaaaaaa);
+            mButtonStop.setElevation(0);
         } else {
-            mButtonStart.setVisibility(View.GONE);
-            mButtonStop.setVisibility(View.VISIBLE);
+            mButtonStart.setEnabled(false);
+            mButtonStart.setTextColor(0xffaaaaaa);
+            mButtonStart.setElevation(0);
+            mButtonStop.setEnabled(true);
+            mButtonStop.setTextColor(0xff4200b7);
+            mButtonStop.setElevation(
+                    convertDpToPixel(BUTTON_ELEVATION_SIZE, this));
         }
+    }
+
+    /*
+    * 【HelperMethod】
+    * diを指定したらpixel値に変換するメソッド
+    * */
+    public static float convertDpToPixel(float dp, Context context){
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return dp * metrics.density;
     }
 
 

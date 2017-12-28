@@ -1,12 +1,18 @@
 <resources>
     <string name="app_name">PuncTime</string>
 
+    <!--For Logic-->
     <string name="action_settings">Settings</string>
 
+    <!--UI Button text-->
+    <string name="button_text_start">Start</string>
+    <string name="button_text_stop">Stop</string>
+
+
     <!-- Settings -->
-    <!-- Menu Item [CHAR LIMIT=NONE] -->
+    <!-- Menu Item-->
     <string name="settings_menu_item">設定</string>
-    <!-- Activity Title [CHAR LIMIT=NONE] -->
+    <!-- Activity Title-->
     <string name="settings_title">設定</string>
 
     <!-- Labels For Limit Time Preference -->
@@ -22,13 +28,14 @@
     <string name="pref_limit_time_60_value" translatable="false">60分</string>
 
 
-    <!-- Strings For Youtube Preference [CHAR LIMIT=30] -->
+    <!-- Strings For Youtube Preference-->
     <string name="pref_youtube_label">Youtubeの楽曲（URLか曲名を入力）</string>
     <string name="pref_youtube_key" translatable="false">alarm_youtube_sound</string>
     <string name="pref_youtube_default" translatable="false">Rita Ora - Your Song</string>
 
     <!--Notifications-->
     <string name="main_notification_channel_name">Primary</string>
-    <string name="on_going_reminder_notification_title">あそびすぎチェッカー起動中</string>
-    <string name="on_going_reminder_notification_body">今は勉強に集中！\nふぁいと！</string>
+    <string name="on_going_reminder_notification_title">PuncTime起動中</string>
+    <string name="on_going_reminder_notification_body">停止するにはこちらをタップ</string>
+    <string name="text_view_title_time">設定タイム</string>
 </resources>
