@@ -1,5 +1,6 @@
 package com.example.android.PuncTime;
 
+import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
@@ -27,37 +28,52 @@ public class MainActivity extends AppCompatActivity
 
     public static final String TAG = MainActivity.class.getSimpleName();
 
+    private static final String BUTTON_STATE = "buttonState";
+
     private Button mButtonStart;
     private Button mButtonStop;
     private TextView mLimitTimeTextView;
     private TextView mYoutubeSourceTextView;
     private UpdateUiReceiver mUpdateUiReceiver;
-
+    private boolean mCheckUsageStats;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "@onCreate");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // UsageEventsを取得するための設定を確認　
-        // ToDo:場所を変える（インストール後突如出てくるためユーザーにとっては謎）
-        boolean checkUsageStats = checkForPermission(this);
-        if (checkUsageStats == false) {
-            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+
+        // UIの初期化（Preferenceの設定内容・onSaveInstanceStateの保存内容を表示）
+        mButtonStart = (Button) findViewById(R.id.stats_btn);
+        mButtonStop = (Button) findViewById(R.id.stop_btn);
+
+        if (isMyServiceRunning(CountTimeService.class)) {
+            Log.i(TAG, "@isMyServiceRunning: True");
+            buttonShowStartHideStop(false);
+        } else {
+            Log.i(TAG, "@isMyServiceRunning: false");
+            buttonShowStartHideStop(true);
         }
 
-        // UIの初期化（Preferenceの設定内容を表示）
         mLimitTimeTextView = (TextView) findViewById(R.id.limit_time);
         mYoutubeSourceTextView = (TextView) findViewById(R.id.youtube_source);
         setupSharedPreferences();
 
 
+        // UsageEventsを取得するための設定を確認　
+        // ToDo:場所を変える（インストール後突如出てくるためユーザーにとっては謎）
+        mCheckUsageStats = checkForPermission(MainActivity.this);
+        if (!mCheckUsageStats) {
+            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+        }
+
+
         // SatrtボタンにClickListenerのセット（バックグラウンド処理開始）
-        mButtonStart = (Button) findViewById(R.id.stats_btn);
         mButtonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 // 念のためstopServiceを先に呼出してリセット
                 stopService(new Intent(
                         MainActivity.this, CountTimeService.class));
@@ -71,7 +87,6 @@ public class MainActivity extends AppCompatActivity
         });
 
         // StopボタンにClickListenerのセット（バックグラウンド処理停止）
-        mButtonStop = (Button) findViewById(R.id.stop_btn);
         mButtonStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -81,9 +96,6 @@ public class MainActivity extends AppCompatActivity
                 Log.i(TAG, "Stop Button is pressed");
             }
         });
-
-        buttonShowStartHideStop(true);
-
 
         // Service終了後にMessageを受け取るための前処理
         mUpdateUiReceiver = new UpdateUiReceiver();
@@ -95,29 +107,25 @@ public class MainActivity extends AppCompatActivity
 
 
     /*
-    * SharedPreferenceChangeListenerをアンレジストする
-    * */
+        * SharedPreferenceChangeListenerをアンレジストする
+        * */
     @Override
     protected void onDestroy() {
         Log.i(TAG, "@onDestroy");
 
-        super.onDestroy();
         PreferenceManager.getDefaultSharedPreferences(this)
                 .unregisterOnSharedPreferenceChangeListener(this);
         unregisterReceiver(mUpdateUiReceiver);
-/*
-        stopService(new Intent(
-                MainActivity.this, CountTimeService.class));
-*/
+        super.onDestroy();
     }
-
-
 
     /*
     *  【HelperMethod】
     *  UsageStatsのパーミッションを確認するため
     * */
     public boolean checkForPermission(Context context) {
+        Log.i(TAG, "@checkForPermission");
+
         AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
         int mode = appOps.checkOpNoThrow(
                 AppOpsManager.OPSTR_GET_USAGE_STATS,
@@ -128,11 +136,30 @@ public class MainActivity extends AppCompatActivity
 
 
     /*
+    *  【HelperMethod】
+    *  Serviceの起動状態にUIのボタン表示を同調させる* */
+    private boolean isMyServiceRunning(Class<CountTimeService> serviceClass) {
+        Log.i(TAG, "@isMyServiceRunning");
+
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service :
+                manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /*
     * 【SharedPreference関連】
     * ①onCreate()にてPreferenceをUIに反映する処理
     * ②OnSharedPreferenceChangeListenerをレジスト（アンレジストはonDestroy()にて）
     * */
     private void setupSharedPreferences() {
+        Log.i(TAG, "@setupSharedPreferences");
+
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -152,6 +179,8 @@ public class MainActivity extends AppCompatActivity
     * */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        Log.i(TAG, "@onSharedPreferenceChanged");
+
         if (key.equals(getString(R.string.pref_limit_time_key))) {
             mLimitTimeTextView.setText(sharedPreferences.getString(
                     key, getResources().getString(R.string.pref_youtube_default)));
@@ -168,12 +197,16 @@ public class MainActivity extends AppCompatActivity
     * */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG, "@onCreateOptionsMenu");
+
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "@onOptionsItemSelected");
+
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             Intent settingsIntent = new Intent(this, SettingsActivity.class);
@@ -185,6 +218,8 @@ public class MainActivity extends AppCompatActivity
 
 
     private void buttonShowStartHideStop(boolean bool) {
+        Log.i(TAG, "@buttonShowStartHideStop");
+
         if (bool) {
             mButtonStop.setVisibility(View.GONE);
             mButtonStart.setVisibility(View.VISIBLE);
@@ -204,6 +239,9 @@ public class MainActivity extends AppCompatActivity
             String message = bundle.getString("message");
 
             Log.d(TAG, "@updateHandler " + message);
+            buttonShowStartHideStop(true);
+            stopService(new Intent(
+                    MainActivity.this, CountTimeService.class));
             buttonShowStartHideStop(true);
         }
     };

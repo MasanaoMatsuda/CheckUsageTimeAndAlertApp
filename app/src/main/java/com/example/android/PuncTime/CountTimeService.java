@@ -114,10 +114,7 @@ public class CountTimeService extends Service {
             mTimer.cancel();
             mTimer = null;
         }
-    // MainActivityへBroadcastを飛ばす処理をTrigger
-        String message = "CountTimeServiceタスク終了 -> UI更新どうぞ";
-        NotificationUtils.clearAllNotifications(CountTimeService.this);
-        sendBroadCast(message);
+        stopForeground(true);
     }
 
 
@@ -143,8 +140,9 @@ public class CountTimeService extends Service {
                     .putExtra("query", value)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            onDestroy();
-            Log.d(TAG, "@タスク終了");
+            // MainActivityへBroadcastを飛ばす処理をTrigger
+            String message = "@Message from CountTimeService[タスク終了]";
+            sendBroadCast(message);
         }
     }
 

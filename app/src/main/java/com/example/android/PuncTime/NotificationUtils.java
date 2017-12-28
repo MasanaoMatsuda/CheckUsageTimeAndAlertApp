@@ -19,7 +19,6 @@ import android.support.v4.content.ContextCompat;
 
 public class NotificationUtils {
 
-    private static final int ON_GOING_REMINDER_NOTIFICATION_ID = 1138;
     private static final String ON_GOING_REMINDER_NOTIFICATION_CHANNEL_ID =
             "on_going_notification_channel";
     private static final int ON_GOING_REMINDER_PENDING_INTENT_ID = 2482;
@@ -60,10 +59,6 @@ public class NotificationUtils {
         notification.flags = Notification.FLAG_NO_CLEAR;
 
         return notification;
-/*
-        notificationManager.notify(
-                ON_GOING_REMINDER_NOTIFICATION_ID, notification);
-*/
     }
 
     private static PendingIntent contentIntent(Context context) {
@@ -81,12 +76,4 @@ public class NotificationUtils {
         Bitmap largeIcon = BitmapFactory.decodeResource(res, R.drawable.ic_timer_black_24dp);
         return largeIcon;
     }
-
-
-    public static void clearAllNotifications(Context context) {
-        NotificationManager notificationManager =
-                (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancelAll();
-    }
-
 }
