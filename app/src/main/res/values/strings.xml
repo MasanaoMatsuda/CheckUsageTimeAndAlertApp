@@ -4,16 +4,17 @@
     <!--For Logic-->
     <string name="action_settings">Settings</string>
 
-    <!--UI Button text-->
+
+    <!--UI text-->
     <string name="button_text_start">Start</string>
     <string name="button_text_stop">Stop</string>
+    <string name="text_view_title_time">設定タイム</string>
 
 
-    <!-- Settings -->
-    <!-- Menu Item-->
+    <!-- Settings-->
     <string name="settings_menu_item">設定</string>
-    <!-- Activity Title-->
     <string name="settings_title">設定</string>
+    <string name="get_permission_title">許可設定へ</string>
 
     <!-- Labels For Limit Time Preference -->
     <string name="pref_limit_time_label">制限時間</string>
@@ -29,13 +30,12 @@
 
 
     <!-- Strings For Youtube Preference-->
-    <string name="pref_youtube_label">Youtubeの楽曲（URLか曲名を入力）</string>
+    <string name="pref_youtube_label">楽曲名（URLも可）</string>
     <string name="pref_youtube_key" translatable="false">alarm_youtube_sound</string>
-    <string name="pref_youtube_default" translatable="false">Rita Ora - Your Song</string>
+    <string name="pref_youtube_default" translatable="false">お気に入りの音楽を登録！</string>
 
     <!--Notifications-->
     <string name="main_notification_channel_name">Primary</string>
     <string name="on_going_reminder_notification_title">PuncTime起動中</string>
     <string name="on_going_reminder_notification_body">停止するにはこちらをタップ</string>
-    <string name="text_view_title_time">設定タイム</string>
 </resources>

@@ -13,18 +13,15 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 
-/**
- * Created by masanao on 2017/12/13.
- */
 
-public class NotificationUtils {
+class NotificationUtils {
 
     private static final String ON_GOING_REMINDER_NOTIFICATION_CHANNEL_ID =
             "on_going_notification_channel";
     private static final int ON_GOING_REMINDER_PENDING_INTENT_ID = 2482;
 
 
-    public static Notification remindUserBecauseCounting(Context context) {
+    static Notification remindUserBecauseCounting(Context context) {
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -73,7 +70,6 @@ public class NotificationUtils {
 
     private static Bitmap largeIcon(Context context) {
         Resources res = context.getResources();
-        Bitmap largeIcon = BitmapFactory.decodeResource(res, R.drawable.ic_notification_punctime);
-        return largeIcon;
+        return BitmapFactory.decodeResource(res, R.drawable.ic_notification_punctime);
     }
 }

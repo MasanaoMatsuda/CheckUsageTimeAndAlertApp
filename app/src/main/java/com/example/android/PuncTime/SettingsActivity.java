@@ -7,9 +7,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
-/**
- * Created by masanao on 2017/12/20.
- */
+
 
 public class SettingsActivity extends AppCompatActivity {
 

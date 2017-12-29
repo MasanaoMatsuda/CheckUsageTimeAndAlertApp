@@ -8,11 +8,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-/**
- * Created by masanao on 2017/12/27.
- */
 
-public class UpdateUiReceiver extends BroadcastReceiver {
+
+public class FinishServiceReceiver extends BroadcastReceiver {
 
     public static Handler mHandler;
 

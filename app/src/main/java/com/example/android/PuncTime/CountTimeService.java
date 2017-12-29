@@ -12,7 +12,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -22,23 +21,20 @@ import java.util.TimerTask;
 import static android.app.usage.UsageEvents.Event.MOVE_TO_BACKGROUND;
 import static android.app.usage.UsageEvents.Event.MOVE_TO_FOREGROUND;
 
-/**
- * Created by masanao on 2017/12/15.
- */
+
 
 public class CountTimeService extends Service {
 
     public static final String TAG = CountTimeService.class.getSimpleName();
+    private static final int FOREGROUND_SERVICE_ID = 1234;
+    private static final String YOUTUBE_PACKAGE_NAME = "com.google.android.youtube";
 
     private Timer mTimer = null;
     public Handler mHandler;
 
     private SharedPreferences mSharedPreferences;
-    private long mPreferenceTime = 1000 * 5; // ToDo: 1000 * 60 に戻す（１分）
+    private long mPreferenceTime = 1000 * 60;
     private long mThreadSleepTime;
-    private long mTotalTime;
-    private long mWaitingTime;
-    private long mUsingTime;
     private long mStartTime;
     private long mEndTime;
     private SimpleDateFormat dateFormat;
@@ -95,7 +91,7 @@ public class CountTimeService extends Service {
             }
         }, mThreadSleepTime);
 
-        startForeground(1, NotificationUtils.remindUserBecauseCounting(this));
+        startForeground(FOREGROUND_SERVICE_ID, NotificationUtils.remindUserBecauseCounting(this));
         return START_STICKY;
     }
 
@@ -136,7 +132,7 @@ public class CountTimeService extends Service {
                     getResources().getString(R.string.pref_youtube_default));
 
             Intent intent = new Intent(Intent.ACTION_SEARCH)
-                    .setPackage("com.google.android.youtube")
+                    .setPackage(YOUTUBE_PACKAGE_NAME)
                     .putExtra("query", value)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
@@ -231,26 +227,27 @@ public class CountTimeService extends Service {
                 "\n→ mSumOfType1:" + mSumOfType1 + " mSumOfType2:" + mSumOfType2 +
                 "\n→ mNumOfType1:" + mNumOfType1 + " mNumOfType2:" + mNumOfType2);
 
+        long waitingTime;
         if (mNumOfType1 < mNumOfType2) {
-            mWaitingTime = (mSumOfType1 + mEndTime) - mSumOfType2
+            waitingTime = (mSumOfType1 + mEndTime) - mSumOfType2
                     + (MyAppGoBackgroundTime - mStartTime);
             Log.d(TAG, "補正します");
         } else {
-            mWaitingTime = mSumOfType1 - mSumOfType2
+            waitingTime = mSumOfType1 - mSumOfType2
                     + (MyAppGoBackgroundTime - mStartTime);
             Log.d(TAG, "補正しません");
         }
 
-        mTotalTime = mEndTime - mStartTime;
-        mUsingTime = mTotalTime - mWaitingTime;
+        long totalTime = mEndTime - mStartTime;
+        long usingTime = totalTime - waitingTime;
 
-        mThreadSleepTime = (mPreferenceTime - mUsingTime);
+        mThreadSleepTime = (mPreferenceTime - usingTime);
 
         Log.d(TAG, "開始時間: " + dateFormat.format(mStartTime) +
                 "\n終了時間" + dateFormat.format(mEndTime) +
-                "\n総集計時間: " + mTotalTime / 1000 +
-                "\n使用時間: " + mUsingTime / 1000 +
-                "\n未使用時間: " + mWaitingTime / 1000 +
+                "\n総集計時間: " + totalTime / 1000 +
+                "\n使用時間: " + usingTime / 1000 +
+                "\n未使用時間: " + waitingTime / 1000 +
                 "\nmSumOfType1" + mSumOfType1 +
                 "\nmSumOfType2" + mSumOfType2);
 
