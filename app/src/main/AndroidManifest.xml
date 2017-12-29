@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.android.PuncTime">
+    package="com.product.android.PuncTime">
 
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.example.android.PuncTime.MainActivity"
+            android:name="com.product.android.PuncTime.MainActivity"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,15 +25,15 @@
         </activity>
 
         <activity
-            android:name="com.example.android.PuncTime.SettingsActivity"
+            android:name="com.product.android.PuncTime.SettingsActivity"
             android:label="@string/settings_title"
-            android:parentActivityName="com.example.android.PuncTime.MainActivity">
+            android:parentActivityName="com.product.android.PuncTime.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.android.PuncTime.MainActivity"/>
+                android:value="com.product.android.PuncTime.MainActivity"/>
         </activity>
 
-        <service android:name="com.example.android.PuncTime.CountTimeService"
+        <service android:name="com.product.android.PuncTime.CountTimeService"
             android:exported="false"/>
 
     </application>

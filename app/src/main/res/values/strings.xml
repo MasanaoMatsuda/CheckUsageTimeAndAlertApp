@@ -32,7 +32,7 @@
     <!-- Strings For Youtube Preference-->
     <string name="pref_youtube_label">楽曲名（URLも可）</string>
     <string name="pref_youtube_key" translatable="false">alarm_youtube_sound</string>
-    <string name="pref_youtube_default" translatable="false">お気に入りの音楽を登録！</string>
+    <string name="pref_youtube_default" translatable="false">お気に入りの曲名を登録！</string>
 
     <!--Notifications-->
     <string name="main_notification_channel_name">Primary</string>

@@ -1,4 +1,4 @@
-package com.example.android.PuncTime;
+package com.product.android.PuncTime;
 
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -28,10 +28,10 @@ public class MainActivity extends AppCompatActivity
     public static final String TAG = MainActivity.class.getSimpleName();
 
     private static final float BUTTON_ELEVATION_SIZE = 12;
-    private static final String CHECK_SETTING_IS_NOT_DEFAULT = "お気に入りの音楽を登録！";
+    private static final String CHECK_SETTING_IS_NOT_DEFAULT = "お気に入りの曲名を登録！";
     private static final String ALERT_MESSAGE_SET_MUSIC =
-            "「設定」ページにて、好きな曲名を入力してください。\n\n" +
-                    "スマホ使用時間が設定タイムに達すると音楽を流してお知らせします。";
+            "「設定」ページにて、好きな曲名を登録してください。\n\n" +
+                    "スマホ使用時間が設定タイムに達すると指定された楽曲を流してお知らせします。";
     private static final String ALERT_MESSAGE_GET_USAGE_STATS_PERMISSION =
             "「使用履歴へのアクセス」を許可してください。\n\n時間計測に必要です。";
     private static final String RESET_UI_CALL_STOP_SERVICE = "UPDATE_ACTION";

@@ -1,4 +1,4 @@
-package com.example.android.PuncTime;
+package com.product.android.PuncTime;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
