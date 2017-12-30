@@ -163,6 +163,7 @@ public class CountTimeService extends Service {
             long timestamp = event.getTimeStamp();
             int type = event.getEventType();
             String packageName = event.getPackageName();
+            String className = event.getClassName();
             long timeStamp = event.getTimeStamp();
 
             // LauncherSystemとSystemUIは、挙動が機種によって異なるため記録を除外。
@@ -180,6 +181,7 @@ public class CountTimeService extends Service {
                     mNumOfType1 += 1;
                     Log.d(TAG, "Added.[" + type + "]" +
                             "\nPackageName is :" + packageName +
+                            "\nClassName is :" + className +
                             "\nTimeStamp is :" + dateFormat.format(timeStamp));
                 } else {
                     Log.d(TAG, "Skipped because of continuous. " + "[" + type + "]" +
