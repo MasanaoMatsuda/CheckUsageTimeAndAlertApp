@@ -8,6 +8,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
@@ -21,6 +23,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -28,18 +35,14 @@ public class MainActivity extends AppCompatActivity
     public static final String TAG = MainActivity.class.getSimpleName();
 
     private static final float BUTTON_ELEVATION_SIZE = 12;
-    private static final String CHECK_SETTING_IS_NOT_DEFAULT = "お気に入りの曲名を登録！";
-    private static final String ALERT_MESSAGE_SET_MUSIC =
-            "「設定」ページにて、好きな曲名を登録してください。\n\n" +
-                    "スマホ使用時間が設定タイムに達すると指定された楽曲を流してお知らせします。";
-    private static final String ALERT_MESSAGE_GET_USAGE_STATS_PERMISSION =
-            "「使用履歴へのアクセス」を許可してください。\n\n時間計測に必要です。";
     private static final String RESET_UI_CALL_STOP_SERVICE = "UPDATE_ACTION";
 
     private Button mButtonStart;
     private Button mButtonStop;
     private TextView mLimitTimeTextView;
     private FinishServiceReceiver mFinishServiceReceiver;
+
+    private TextView mUsage;
 
 
     @Override
@@ -65,6 +68,7 @@ public class MainActivity extends AppCompatActivity
         mLimitTimeTextView = (TextView) findViewById(R.id.limit_time);
         FloatingActionButton fabSettings = (FloatingActionButton) findViewById(R.id.fab_settings);
         setupSharedPreferences();
+        mUsage = (TextView) findViewById(R.id.usage);
 
 
         /*
@@ -77,7 +81,7 @@ public class MainActivity extends AppCompatActivity
                 boolean checkUsageStats = checkForPermission(MainActivity.this);
                 if (!checkUsageStats) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage(ALERT_MESSAGE_GET_USAGE_STATS_PERMISSION)
+                    builder.setMessage(getString(R.string.alert_msg_get_usage_stats_permission))
                             .setPositiveButton(getString(R.string.get_permission_title), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -96,10 +100,10 @@ public class MainActivity extends AppCompatActivity
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 String value = sharedPreferences.getString(
                         getString(R.string.pref_youtube_key),
-                        getResources().getString(R.string.pref_youtube_default));
-                if (value.equals(CHECK_SETTING_IS_NOT_DEFAULT) | value.equals("")) {
+                        "");
+                if (value.equals(getString(R.string.pref_youtube_default)) | value.equals("")) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage(ALERT_MESSAGE_SET_MUSIC)
+                    builder.setMessage(getString(R.string.alert_msg_set_music))
                             .setPositiveButton(getString(R.string.settings_title), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -147,9 +151,15 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NotificationUtils.cancelNotification(this);
+    }
+
     /*
-    * SharedPreferenceChangeListenerをアンレジストする
-    * */
+        * SharedPreferenceChangeListenerをアンレジストする
+        * */
     @Override
     protected void onDestroy() {
         Log.i(TAG, "@onDestroy");
@@ -277,7 +287,39 @@ public class MainActivity extends AppCompatActivity
             stopService(new Intent(
                     MainActivity.this, CountTimeService.class));
             changeButtonUsability(true);
+            NotificationUtils.remindUserFinishedService(MainActivity.this);
+            updateUsageReport();
+
         }
     };
+
+    private void updateUsageReport() {
+        try {
+            // デシリアライズ
+            SerializableUsageStats deSerializableData = deSerialize();
+            Log.d("Check", "Start - End: " + deSerializableData.startTime + deSerializableData.endTime);
+            List<Application> applications = deSerializableData.applicationList;
+            for (Application app : applications) {
+                mUsage.append("UsageReport\n" + app.packageName + "/" + app.appName + "/" + app.foregroundTimeInMinute + "\n");
+                PackageManager packageManager = getPackageManager();
+                Drawable icon = packageManager.getApplicationIcon(app.packageName);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * デシリアライズする
+     */
+    private SerializableUsageStats deSerialize() throws ClassNotFoundException, IOException {
+
+        FileInputStream fis = openFileInput("SaveData.dat");
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        SerializableUsageStats data = (SerializableUsageStats) ois.readObject();
+        ois.close();
+        return data;
+    }
+
 }
 

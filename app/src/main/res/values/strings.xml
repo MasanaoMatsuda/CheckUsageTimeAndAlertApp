@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">PuncTime</string>
+    <string name="app_name" translatable="false">PuncTime</string>
 
     <!--For Logic-->
-    <string name="action_settings">Settings</string>
+    <string name="action_settings" translatable="false">Settings</string>
 
 
     <!--UI text-->
@@ -15,6 +15,7 @@
     <string name="settings_menu_item">設定</string>
     <string name="settings_title">設定</string>
     <string name="get_permission_title">許可設定へ</string>
+
 
     <!-- Labels For Limit Time Preference -->
     <string name="pref_limit_time_label">制限時間</string>
@@ -32,10 +33,19 @@
     <!-- Strings For Youtube Preference-->
     <string name="pref_youtube_label">楽曲名（URLも可）</string>
     <string name="pref_youtube_key" translatable="false">alarm_youtube_sound</string>
-    <string name="pref_youtube_default" translatable="false">お気に入りの曲名を登録！</string>
+    <string name="pref_youtube_default">お気に入りの曲名を登録！</string>
+
 
     <!--Notifications-->
     <string name="main_notification_channel_name">Primary</string>
     <string name="on_going_reminder_notification_title">PuncTime起動中</string>
-    <string name="on_going_reminder_notification_body">停止するにはこちらをタップ</string>
+    <string name="on_going_reminder_notification_body">停止はこちらをタップ</string>
+    <string name="finish_service_reminder_notification_title">PuncTime</string>
+    <string name="finish_service_reminder_notification_body">終了しました</string>
+
+
+    <!--Alert Dialog-->
+    <string name="alert_msg_set_music">「設定」ページにて、好きな曲名を登録してください。\nスマホ使用時間が設定タイムに達すると指定された楽曲を流してお知らせします</string>
+    <string name="alert_msg_get_usage_stats_permission">「使用履歴へのアクセス」を許可してください。\n時間計測に必要です。</string>
+
 </resources>

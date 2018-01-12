@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--UI text-->
+    <string name="button_text_start">Start</string>
+    <string name="button_text_stop">Stop</string>
+    <string name="text_view_title_time">Limit Time</string>
+
+
+    <!-- Settings-->
+    <string name="settings_menu_item">Settings</string>
+    <string name="settings_title">Settings</string>
+    <string name="get_permission_title">Go Settings</string>
+
+
+    <!-- Labels For Limit Time Preference -->
+    <string name="pref_limit_time_label">Limit Time</string>
+    <string name="pref_limit_time_label_15">15 min</string>
+    <string name="pref_limit_time_label_30">30 min</string>
+    <string name="pref_limit_time_label_45">45 min</string>
+    <string name="pref_limit_time_label_60">60 min</string>
+
+
+    <!-- Strings For Youtube Preference-->
+    <string name="pref_youtube_label">Song title (or URL）</string>
+    <string name="pref_youtube_default">Register your favorite song!</string>
+
+
+    <!--Notifications-->
+    <string name="main_notification_channel_name">Primary</string>
+    <string name="on_going_reminder_notification_title">PuncTime is running...</string>
+    <string name="on_going_reminder_notification_body">Tap here to stop.</string>
+    <string name="finish_service_reminder_notification_title">PuncTime</string>
+    <string name="finish_service_reminder_notification_body">[Finished] Tap here to run again.</string>
+
+
+    <!--Alert Dialog-->
+    <string name="alert_msg_set_music">Please go \"SETTINGS\" and register your favorite song title.\nTo notify your usage time get to limit.</string>
+    <string name="alert_msg_get_usage_stats_permission">Please go to the page \"Apps with usage access\" and permit this application access to the phone usage.\nThose information will use for counting usage time.</string>
+</resources>

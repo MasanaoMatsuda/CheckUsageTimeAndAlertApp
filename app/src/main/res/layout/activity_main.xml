@@ -73,6 +73,11 @@
                 android:textSize="24sp" />
         </LinearLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/usage"/>
+
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton

@@ -6,21 +6,36 @@ import android.app.usage.UsageStatsManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OptionalDataException;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static android.app.usage.UsageEvents.Event.MOVE_TO_BACKGROUND;
 import static android.app.usage.UsageEvents.Event.MOVE_TO_FOREGROUND;
-
 
 
 public class CountTimeService extends Service {
@@ -33,7 +48,7 @@ public class CountTimeService extends Service {
     public Handler mHandler;
 
     private SharedPreferences mSharedPreferences;
-    private long mPreferenceTime = 1000 * 60;
+    private long mPreferenceTime = 1000 * 3;
     private long mThreadSleepTime;
     private long mStartTime;
     private long mEndTime;
@@ -57,6 +72,8 @@ public class CountTimeService extends Service {
     private String mLauncherPackageName;
     private final String SYSTEM_UI = "com.android.systemui";
 
+
+    private Map<String, Long> mUsageHashMap;
 
 
     @Override
@@ -91,7 +108,7 @@ public class CountTimeService extends Service {
             }
         }, mThreadSleepTime);
 
-        startForeground(FOREGROUND_SERVICE_ID, NotificationUtils.remindUserBecauseCounting(this));
+        startForeground(FOREGROUND_SERVICE_ID, NotificationUtils.remindUserCounting(this));
         return START_STICKY;
     }
 
@@ -137,6 +154,50 @@ public class CountTimeService extends Service {
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
 
+
+
+
+            PackageManager packageManager = getPackageManager();
+            List<ApplicationInfo> appInfoList = packageManager.getInstalledApplications(0);
+            String[] apps = new String[ appInfoList.size() + 1 ];
+            HashMap<String, String> allAppsHashMap = new HashMap<>();
+            int i = 0;
+            for (ApplicationInfo appInfo : appInfoList) {
+                apps[i++] = appInfo.packageName;
+                allAppsHashMap.put(appInfo.packageName, appInfo.loadLabel(packageManager).toString());
+            }
+
+            reflectUsageToHashMap();
+            Set<String> keySets = mUsageHashMap.keySet();
+            List<Application> applicationsList = new ArrayList<>();
+            for (String key: keySets) {
+                Long foregroundTime = mUsageHashMap.get(key);
+                if (foregroundTime < 0) {
+                    foregroundTime += mEndTime;
+                }
+                String appName = allAppsHashMap.get(key);
+                Application application = new Application();
+                application.packageName = key;
+                application.appName = appName;
+                application.foregroundTimeInMinute = foregroundTime;
+                applicationsList.add(application);
+                Log.d("Check",
+                        "KeySet: " + application.packageName +
+                                "/ " + application.foregroundTimeInMinute / 1000 +
+                                "秒/ appName: " + application.appName);
+            }
+
+            SerializableUsageStats serializableData = new SerializableUsageStats();
+            serializableData.startTime = mStartTime;
+            serializableData.endTime = mEndTime;
+            serializableData.applicationList = applicationsList;
+            try {
+                // シリアライズ
+                serialize(serializableData);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             // MainActivityへBroadcastを飛ばす処理をTrigger
             String message = "@Message from CountTimeService[タスク終了]";
             sendBroadCast(message);
@@ -163,8 +224,6 @@ public class CountTimeService extends Service {
             long timestamp = event.getTimeStamp();
             int type = event.getEventType();
             String packageName = event.getPackageName();
-            String className = event.getClassName();
-            long timeStamp = event.getTimeStamp();
 
             // LauncherSystemとSystemUIは、挙動が機種によって異なるため記録を除外。
             // ロジックが崩壊し、エラー発生元になる可能性があるため。
@@ -181,8 +240,7 @@ public class CountTimeService extends Service {
                     mNumOfType1 += 1;
                     Log.d(TAG, "Added.[" + type + "]" +
                             "\nPackageName is :" + packageName +
-                            "\nClassName is :" + className +
-                            "\nTimeStamp is :" + dateFormat.format(timeStamp));
+                            "\nTimeStamp is :" + dateFormat.format(timestamp));
                 } else {
                     Log.d(TAG, "Skipped because of continuous. " + "[" + type + "]" +
                             "\nPackageName is :" + packageName);
@@ -191,7 +249,7 @@ public class CountTimeService extends Service {
                 // 【バグ対策】本アプリが最初にバックグラウンドに入った時間を記録
                 if (mTheFirstType2) {
                     mTheFirstType2 = false;
-                    MyAppGoBackgroundTime = timeStamp;
+                    MyAppGoBackgroundTime = timestamp;
                 }
 
                 if (mCheckContinuousType2) {
@@ -201,7 +259,7 @@ public class CountTimeService extends Service {
                     mNumOfType2 += 1;
                     Log.d(TAG, "Added.[" + type + "]" +
                             "\nPackageName is :" + packageName +
-                            "\nTimeStamp is :" + dateFormat.format(timeStamp));
+                            "\nTimeStamp is :" + dateFormat.format(timestamp));
                 } else if (!mCheckContinuousType2) {
                     Log.d("Check", "skipped because continuous. This is: " + type +
                             "\nPackageName is :" + packageName);
@@ -339,5 +397,96 @@ public class CountTimeService extends Service {
         broadcastIntent.putExtra("message", message);
         broadcastIntent.setAction("UPDATE_ACTION");
         getBaseContext().sendBroadcast(broadcastIntent);
+    }
+
+
+    private void reflectUsageToHashMap() {
+        Log.d(TAG, "@");
+        mUsageHashMap = new HashMap<>();
+
+        mCheckContinuousType1 = true;
+        mCheckContinuousType2 = true;
+
+        UsageStatsManager stats = (UsageStatsManager) getSystemService("usagestats");
+        UsageEvents usageEvents = stats.queryEvents(mStartTime, mEndTime);
+
+        while (usageEvents.hasNextEvent()) {
+            UsageEvents.Event event = new android.app.usage.UsageEvents.Event();
+            usageEvents.getNextEvent(event);
+            long timestamp = event.getTimeStamp();
+            int type = event.getEventType();
+            String packageName = event.getPackageName();
+
+            if (packageName.equals(mLauncherPackageName)
+                    | packageName.equals(SYSTEM_UI)
+                    | packageName.equals("com.product.android.PuncTime")) {
+                Log.d("Check", "Skipped.[mLauncherPackageName] or [SYSTEM_UI] or [PuncTime]");
+                continue;
+            }
+
+            if (type == MOVE_TO_FOREGROUND) {
+                if (mCheckContinuousType1) {
+                    mCheckContinuousType1 = false;
+                    mCheckContinuousType2 = true;
+                    reflectToHashMap(type, packageName, timestamp);
+                    Log.d(TAG, "Added to HashMap.[" + type + "]" +
+                            "\nPackageName is :" + packageName +
+                            "\nTimeStamp is :" + dateFormat.format(timestamp));
+                }
+            } else if (type == MOVE_TO_BACKGROUND) {
+                if (mCheckContinuousType2) {
+                    mCheckContinuousType2 = false;
+                    mCheckContinuousType1 = true;
+                    reflectToHashMap(type, packageName, timestamp);
+                    Log.d(TAG, "Added to HashMap.[" + type + "]" +
+                            "\nPackageName is :" + packageName +
+                            "\nTimeStamp is :" + dateFormat.format(timestamp));
+                }
+            }
+        }
+    }
+
+    private Map<String, Long> reflectToHashMap(int type, String packageName, long timestamp) {
+        if (type == 1) {
+            timestamp = timestamp * (-1);
+        }
+        if (mUsageHashMap.containsKey(packageName)){
+            Long newValue = Long.valueOf(timestamp) + mUsageHashMap.get(packageName);
+            mUsageHashMap.remove(packageName);
+            mUsageHashMap.put(packageName, newValue);
+        } else {
+            mUsageHashMap.put(packageName, Long.valueOf(timestamp));
+        }
+        return mUsageHashMap;
+    }
+
+    /**
+     * シリアライズする
+     */
+    private void serialize(SerializableUsageStats data) throws IOException {
+
+        // Byte配列への出力を行うストリーム
+        FileOutputStream fos = openFileOutput("SaveData.dat", MODE_PRIVATE);
+        // オブジェクトをストリーム（バイト配列）に変換する為のクラス
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        // オブジェクトをストリームに変換（シリアライズ）
+        oos.writeObject(data);
+        oos.close();
+    }
+
+    /**
+     * byte[]配列をStringに変換
+     * @param stream
+     * @return
+     */
+    private String convert(byte[] stream) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(byte b:stream) {
+            stringBuilder.append(b);
+            stringBuilder.append(" ");
+        }
+        return stringBuilder.toString();
     }
 }
