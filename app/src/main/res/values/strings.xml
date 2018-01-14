@@ -9,7 +9,10 @@
     <string name="button_text_start">Start</string>
     <string name="button_text_stop">Stop</string>
     <string name="text_view_title_time">設定タイム</string>
-
+    <string name="page_title_home">タイマー</string>
+    <string name="page_title_report">レポート</string>
+    <string name="report_page_label_about">約</string>
+    <string name="report_page_label_min">分</string>
 
     <!-- Settings-->
     <string name="settings_menu_item">設定</string>
@@ -47,5 +50,4 @@
     <!--Alert Dialog-->
     <string name="alert_msg_set_music">「設定」ページにて、好きな曲名を登録してください。\nスマホ使用時間が設定タイムに達すると指定された楽曲を流してお知らせします</string>
     <string name="alert_msg_get_usage_stats_permission">「使用履歴へのアクセス」を許可してください。\n時間計測に必要です。</string>
-
 </resources>

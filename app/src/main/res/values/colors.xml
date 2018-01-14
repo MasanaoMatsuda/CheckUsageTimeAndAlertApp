@@ -6,5 +6,6 @@
 
     <color name="colorWhite">#FFFFFF</color>
     <color name="colorButtonUnusable">#BDBDBD</color>
+    <color name="colorTabUnusable">#9575CD</color>
     <color name="colorButtonGradient">#FF9100</color>
 </resources>

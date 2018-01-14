@@ -14,16 +14,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,11 +41,11 @@ public class CountTimeService extends Service {
     public Handler mHandler;
 
     private SharedPreferences mSharedPreferences;
-    private long mPreferenceTime = 1000 * 3;
+    private long mPreferenceTime = 1000 * 60;
     private long mThreadSleepTime;
     private long mStartTime;
     private long mEndTime;
-    private SimpleDateFormat dateFormat;
+    private SimpleDateFormat mDateFormat;
 
     // 開始後の自動スリープに移行するまでの時間をストックする
     private boolean mTheFirstType2 = true;
@@ -61,7 +54,7 @@ public class CountTimeService extends Service {
     // 間隔が短すぎるループを停止させる処理に使う定数(10秒に設定）
     private static final long MIN_LOOP_INTERVAL = 1000 * 10;
 
-    private boolean mCheckContinuousType1 = false;
+    private boolean mCheckContinuousType1 = true;
     private boolean mCheckContinuousType2 = true;
     private long mNumOfType1 = 0;
     private long mNumOfType2 = 0;
@@ -71,10 +64,10 @@ public class CountTimeService extends Service {
     // LauncherアプリとSystemUIをextractUsage()にてカウント対象外とするための変数
     private String mLauncherPackageName;
     private final String SYSTEM_UI = "com.android.systemui";
-
+    private final String PUNC_TIME = "com.product.android.PuncTime";
 
     private Map<String, Long> mUsageHashMap;
-
+    private PackageManager mPackageManager;
 
     @Override
     public void onCreate() {
@@ -82,12 +75,13 @@ public class CountTimeService extends Service {
 
         // 変数の初期化処理
         mHandler = new Handler();
-        dateFormat = new SimpleDateFormat("yyyy/M/d H:mm:ss.SS", Locale.JAPAN);
+        mDateFormat = new SimpleDateFormat("yyyy/M/d H:mm:ss.SS", Locale.JAPAN);
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mPreferenceTime = readPreferenceTime(mSharedPreferences);
         mThreadSleepTime = mPreferenceTime;
         mStartTime = System.currentTimeMillis();
         findLauncherApp();
+        mPackageManager = getPackageManager();
     }
 
 
@@ -143,6 +137,7 @@ public class CountTimeService extends Service {
             setTimerAgain();
         } else {
             Log.d(TAG, "@Youtube");
+            stopForeground(true);
 
             String value = mSharedPreferences.getString(
                     getString(R.string.pref_youtube_key),
@@ -155,42 +150,27 @@ public class CountTimeService extends Service {
             startActivity(intent);
 
 
-
-
-            PackageManager packageManager = getPackageManager();
-            List<ApplicationInfo> appInfoList = packageManager.getInstalledApplications(0);
-            String[] apps = new String[ appInfoList.size() + 1 ];
+            List<ApplicationInfo> appInfoList = mPackageManager.getInstalledApplications(0);
             HashMap<String, String> allAppsHashMap = new HashMap<>();
-            int i = 0;
             for (ApplicationInfo appInfo : appInfoList) {
-                apps[i++] = appInfo.packageName;
-                allAppsHashMap.put(appInfo.packageName, appInfo.loadLabel(packageManager).toString());
+                allAppsHashMap.put(appInfo.packageName, appInfo.loadLabel(mPackageManager).toString());
             }
 
             reflectUsageToHashMap();
             Set<String> keySets = mUsageHashMap.keySet();
             List<Application> applicationsList = new ArrayList<>();
             for (String key: keySets) {
+                String appName = allAppsHashMap.get(key);
                 Long foregroundTime = mUsageHashMap.get(key);
                 if (foregroundTime < 0) {
                     foregroundTime += mEndTime;
                 }
-                String appName = allAppsHashMap.get(key);
-                Application application = new Application();
-                application.packageName = key;
-                application.appName = appName;
-                application.foregroundTimeInMinute = foregroundTime;
-                applicationsList.add(application);
-                Log.d("Check",
-                        "KeySet: " + application.packageName +
-                                "/ " + application.foregroundTimeInMinute / 1000 +
-                                "秒/ appName: " + application.appName);
+                applicationsList.add(new Application(key, appName, foregroundTime));
             }
 
-            SerializableUsageStats serializableData = new SerializableUsageStats();
-            serializableData.startTime = mStartTime;
-            serializableData.endTime = mEndTime;
-            serializableData.applicationList = applicationsList;
+            SerializableUsageStats serializableData =
+                    new SerializableUsageStats(mStartTime, mEndTime, applicationsList);
+
             try {
                 // シリアライズ
                 serialize(serializableData);
@@ -231,6 +211,19 @@ public class CountTimeService extends Service {
                 Log.d("Check", "Skipped.[mLauncherPackageName] or [SYSTEM_UI]");
                 continue;
             }
+            // 【バグ対策】本アプリが最初にバックグラウンドに入った時間を記録
+            if (packageName.equals(PUNC_TIME)) {
+                if (mTheFirstType2) {
+                    mTheFirstType2 = false;
+                    MyAppGoBackgroundTime = timestamp;
+                    Log.d(TAG, "PuncTime went background."
+                            + "[" + mDateFormat.format(MyAppGoBackgroundTime) + "]" +
+                            "\nPackageName is :" + packageName);
+                }
+                Log.d(TAG, "skip PuncTime");
+                continue;
+            }
+
 
             if (type == MOVE_TO_FOREGROUND) {
                 if (mCheckContinuousType1) {
@@ -240,18 +233,12 @@ public class CountTimeService extends Service {
                     mNumOfType1 += 1;
                     Log.d(TAG, "Added.[" + type + "]" +
                             "\nPackageName is :" + packageName +
-                            "\nTimeStamp is :" + dateFormat.format(timestamp));
+                            "\nTimeStamp is :" + mDateFormat.format(timestamp));
                 } else {
                     Log.d(TAG, "Skipped because of continuous. " + "[" + type + "]" +
                             "\nPackageName is :" + packageName);
                 }
             } else if (type == MOVE_TO_BACKGROUND) {
-                // 【バグ対策】本アプリが最初にバックグラウンドに入った時間を記録
-                if (mTheFirstType2) {
-                    mTheFirstType2 = false;
-                    MyAppGoBackgroundTime = timestamp;
-                }
-
                 if (mCheckContinuousType2) {
                     mCheckContinuousType2 = false;
                     mCheckContinuousType1 = true;
@@ -259,7 +246,7 @@ public class CountTimeService extends Service {
                     mNumOfType2 += 1;
                     Log.d(TAG, "Added.[" + type + "]" +
                             "\nPackageName is :" + packageName +
-                            "\nTimeStamp is :" + dateFormat.format(timestamp));
+                            "\nTimeStamp is :" + mDateFormat.format(timestamp));
                 } else if (!mCheckContinuousType2) {
                     Log.d("Check", "skipped because continuous. This is: " + type +
                             "\nPackageName is :" + packageName);
@@ -287,27 +274,23 @@ public class CountTimeService extends Service {
                 "\n→ mSumOfType1:" + mSumOfType1 + " mSumOfType2:" + mSumOfType2 +
                 "\n→ mNumOfType1:" + mNumOfType1 + " mNumOfType2:" + mNumOfType2);
 
-        long waitingTime;
-        if (mNumOfType1 < mNumOfType2) {
-            waitingTime = (mSumOfType1 + mEndTime) - mSumOfType2
-                    + (MyAppGoBackgroundTime - mStartTime);
+        long usingTime;
+        if (mNumOfType1 > mNumOfType2) {
+            usingTime = (mSumOfType2 + mEndTime) - mSumOfType1;
             Log.d(TAG, "補正します");
         } else {
-            waitingTime = mSumOfType1 - mSumOfType2
-                    + (MyAppGoBackgroundTime - mStartTime);
+            usingTime = mSumOfType2 - mSumOfType1;
             Log.d(TAG, "補正しません");
         }
 
         long totalTime = mEndTime - mStartTime;
-        long usingTime = totalTime - waitingTime;
 
         mThreadSleepTime = (mPreferenceTime - usingTime);
 
-        Log.d(TAG, "開始時間: " + dateFormat.format(mStartTime) +
-                "\n終了時間" + dateFormat.format(mEndTime) +
+        Log.d(TAG, "開始時間: " + mDateFormat.format(mStartTime) +
+                "\n終了時間" + mDateFormat.format(mEndTime) +
                 "\n総集計時間: " + totalTime / 1000 +
                 "\n使用時間: " + usingTime / 1000 +
-                "\n未使用時間: " + waitingTime / 1000 +
                 "\nmSumOfType1" + mSumOfType1 +
                 "\nmSumOfType2" + mSumOfType2);
 
@@ -351,7 +334,7 @@ public class CountTimeService extends Service {
         mSumOfType2 = 0;
         mNumOfType1 = 0;
         mNumOfType2 = 0;
-        mCheckContinuousType1 = false;
+        mCheckContinuousType1 = true;
         mCheckContinuousType2 = true;
     }
 
@@ -388,18 +371,6 @@ public class CountTimeService extends Service {
     }
 
 
-    /*
-    * ServiceからMainActivityへのBroadcast（UIの更新を依頼）
-    * */
-    protected void sendBroadCast(String message) {
-
-        Intent broadcastIntent = new Intent();
-        broadcastIntent.putExtra("message", message);
-        broadcastIntent.setAction("UPDATE_ACTION");
-        getBaseContext().sendBroadcast(broadcastIntent);
-    }
-
-
     private void reflectUsageToHashMap() {
         Log.d(TAG, "@");
         mUsageHashMap = new HashMap<>();
@@ -431,7 +402,7 @@ public class CountTimeService extends Service {
                     reflectToHashMap(type, packageName, timestamp);
                     Log.d(TAG, "Added to HashMap.[" + type + "]" +
                             "\nPackageName is :" + packageName +
-                            "\nTimeStamp is :" + dateFormat.format(timestamp));
+                            "\nTimeStamp is :" + mDateFormat.format(timestamp));
                 }
             } else if (type == MOVE_TO_BACKGROUND) {
                 if (mCheckContinuousType2) {
@@ -440,24 +411,23 @@ public class CountTimeService extends Service {
                     reflectToHashMap(type, packageName, timestamp);
                     Log.d(TAG, "Added to HashMap.[" + type + "]" +
                             "\nPackageName is :" + packageName +
-                            "\nTimeStamp is :" + dateFormat.format(timestamp));
+                            "\nTimeStamp is :" + mDateFormat.format(timestamp));
                 }
             }
         }
     }
 
-    private Map<String, Long> reflectToHashMap(int type, String packageName, long timestamp) {
+    private void reflectToHashMap(int type, String packageName, long timestamp) {
         if (type == 1) {
             timestamp = timestamp * (-1);
         }
         if (mUsageHashMap.containsKey(packageName)){
-            Long newValue = Long.valueOf(timestamp) + mUsageHashMap.get(packageName);
+            Long newValue = timestamp + mUsageHashMap.get(packageName);
             mUsageHashMap.remove(packageName);
             mUsageHashMap.put(packageName, newValue);
         } else {
-            mUsageHashMap.put(packageName, Long.valueOf(timestamp));
+            mUsageHashMap.put(packageName, timestamp);
         }
-        return mUsageHashMap;
     }
 
     /**
@@ -474,19 +444,15 @@ public class CountTimeService extends Service {
         oos.close();
     }
 
-    /**
-     * byte[]配列をStringに変換
-     * @param stream
-     * @return
-     */
-    private String convert(byte[] stream) {
 
-        StringBuilder stringBuilder = new StringBuilder();
+    /*
+    * ServiceからMainActivityへのBroadcast（UIの更新を依頼）
+    * */
+    protected void sendBroadCast(String message) {
 
-        for(byte b:stream) {
-            stringBuilder.append(b);
-            stringBuilder.append(" ");
-        }
-        return stringBuilder.toString();
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.putExtra("message", message);
+        broadcastIntent.setAction("UPDATE_ACTION");
+        getBaseContext().sendBroadcast(broadcastIntent);
     }
 }

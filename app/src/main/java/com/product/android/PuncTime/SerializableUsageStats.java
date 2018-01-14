@@ -11,7 +11,26 @@ public class SerializableUsageStats implements Serializable {
 
     private static final long serialVersionUID = 6255752248513019027L;
 
-    long startTime;
-    long endTime;
-    List<Application> applicationList;
+    private long startTime;
+    private long endTime;
+    private List<Application> applicationList;
+
+
+    public SerializableUsageStats(long startTime, long endTime, List<Application> applicationList) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.applicationList = applicationList;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public List<Application> getApplicationList() {
+        return applicationList;
+    }
 }

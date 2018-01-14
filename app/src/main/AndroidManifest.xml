@@ -36,6 +36,12 @@
         <service android:name="com.product.android.PuncTime.CountTimeService"
             android:exported="false"/>
 
+        <receiver android:name=".FinishServiceReceiver">
+            <intent-filter>
+                <action android:name="UPDATE_ACTION" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

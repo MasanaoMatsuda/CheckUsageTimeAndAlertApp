@@ -4,7 +4,10 @@
     <string name="button_text_start">Start</string>
     <string name="button_text_stop">Stop</string>
     <string name="text_view_title_time">Limit Time</string>
-
+    <string name="page_title_home">Timer</string>
+    <string name="page_title_report">Report</string>
+    <string name="report_page_label_about">about</string>
+    <string name="report_page_label_min">min</string>
 
     <!-- Settings-->
     <string name="settings_menu_item">Settings</string>
