@@ -45,7 +45,7 @@ public class UsageReportFragment extends Fragment {
         mUsageList = (ListView) rootView.findViewById(R.id.report_page_usage_list);
         mPackageManager = getActivity().getPackageManager();
         mFormatTime = new SimpleDateFormat("H:mm", Locale.JAPAN);
-        mFormatDate = new SimpleDateFormat("YYYY年M月d日", Locale.JAPAN);
+        mFormatDate = new SimpleDateFormat("YYYY/ M/ d", Locale.JAPAN);
 
         return rootView;
     }

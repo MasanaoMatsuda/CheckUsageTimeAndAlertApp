@@ -9,6 +9,7 @@
     <string name="button_text_start">Start</string>
     <string name="button_text_stop">Stop</string>
     <string name="text_view_title_time">設定タイム</string>
+    <string name="timer_page_label_unit">分</string>
     <string name="page_title_home">タイマー</string>
     <string name="page_title_report">レポート</string>
     <string name="report_page_label_about">約</string>

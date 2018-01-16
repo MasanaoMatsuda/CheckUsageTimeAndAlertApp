@@ -50,7 +50,7 @@ public class MainFragment extends Fragment
     private Button mButtonStart;
     private Button mButtonStop;
     private TextView mLimitTimeTextView;
-
+    private SharedPreferences mSharedPreferences;
 
     public MainFragment() {
         // Required empty public constructor
@@ -69,7 +69,14 @@ public class MainFragment extends Fragment
         mButtonStop = (Button) rootView.findViewById(R.id.stop_btn);
         mLimitTimeTextView = (TextView) rootView.findViewById(R.id.limit_time);
         FloatingActionButton fabSettings = (FloatingActionButton) rootView.findViewById(R.id.fab_settings);
-        setupSharedPreferences();
+
+
+        Log.i(TAG, "@setupSharedPreferences");
+
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+
 
         /*
         * clickListenerのセット(for Start, Stop and Floating Action Button)
@@ -153,6 +160,13 @@ public class MainFragment extends Fragment
             Log.i(TAG, "@isMyServiceRunning: false");
             changeButtonUsability(true);
         }
+
+        String limitTime = mSharedPreferences.getString(
+                getString(R.string.pref_limit_time_key),
+                getResources().getString(R.string.pref_limit_time_30_value));
+        String limitValue = limitTime.split("分")[0];
+        mLimitTimeTextView.setText(limitValue);
+
     }
 
 
@@ -206,15 +220,6 @@ public class MainFragment extends Fragment
     * ②OnSharedPreferenceChangeListenerをレジスト（アンレジストはonDestroy()にて）
     * */
     private void setupSharedPreferences() {
-        Log.i(TAG, "@setupSharedPreferences");
-
-        SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(getContext());
-
-        mLimitTimeTextView.setText(sharedPreferences.getString(
-                getString(R.string.pref_limit_time_key),
-                getResources().getString(R.string.pref_limit_time_30_value)));
-        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
     }
 
     /*
