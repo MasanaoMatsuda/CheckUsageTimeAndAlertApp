@@ -13,6 +13,9 @@
     <string name="page_title_report">レポート</string>
     <string name="report_page_label_about">約</string>
     <string name="report_page_label_min">分</string>
+    <string name="report_page_detail">詳細</string>
+    <string name="report_page_announce_no_data">データがありません...</string>
+
 
     <!-- Settings-->
     <string name="settings_menu_item">設定</string>
