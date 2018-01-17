@@ -21,6 +21,8 @@
 
     <!-- Labels For Limit Time Preference -->
     <string name="pref_limit_time_label">Limit Time</string>
+    <string name="pref_limit_time_label_5">5 min</string>
+    <string name="pref_limit_time_label_10">10 min</string>
     <string name="pref_limit_time_label_15">15 min</string>
     <string name="pref_limit_time_label_30">30 min</string>
     <string name="pref_limit_time_label_45">45 min</string>

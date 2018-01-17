@@ -26,11 +26,15 @@
 
     <!-- Labels For Limit Time Preference -->
     <string name="pref_limit_time_label">制限時間</string>
+    <string name="pref_limit_time_label_5">5分</string>
+    <string name="pref_limit_time_label_10">10分</string>
     <string name="pref_limit_time_label_15">15分</string>
     <string name="pref_limit_time_label_30">30分</string>
     <string name="pref_limit_time_label_45">45分</string>
     <string name="pref_limit_time_label_60">60分</string>
     <string name="pref_limit_time_key" translatable="false">limit_time</string>
+    <string name="pref_limit_time_5_value" translatable="false">5分</string>
+    <string name="pref_limit_time_10_value" translatable="false">10分</string>
     <string name="pref_limit_time_15_value" translatable="false">15分</string>
     <string name="pref_limit_time_30_value" translatable="false">30分</string>
     <string name="pref_limit_time_45_value" translatable="false">45分</string>

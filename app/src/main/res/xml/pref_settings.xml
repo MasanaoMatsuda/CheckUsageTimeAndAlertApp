@@ -4,7 +4,7 @@
     android:title="@string/settings_title">
 
     <ListPreference
-        android:defaultValue="@string/pref_limit_time_30_value"
+        android:defaultValue="@string/pref_limit_time_15_value"
         android:entries="@array/pref_limit_time_option_labels"
         android:entryValues="@array/pref_limit_time_option_values"
         android:key="@string/pref_limit_time_key"
