@@ -3,6 +3,7 @@ package com.product.android.PuncTime;
 import android.app.Service;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStatsManager;
+import android.arch.lifecycle.ReportFragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -10,6 +11,9 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.preference.PreferenceManager;
@@ -35,7 +39,6 @@ public class CountTimeService extends Service {
 
     public static final String TAG = CountTimeService.class.getSimpleName();
     private static final int FOREGROUND_SERVICE_ID = 1234;
-    private static final String YOUTUBE_PACKAGE_NAME = "com.google.android.youtube";
 
     private Timer mTimer = null;
     public Handler mHandler;
@@ -68,6 +71,7 @@ public class CountTimeService extends Service {
 
     private Map<String, Long> mUsageHashMap;
     private PackageManager mPackageManager;
+
 
     @Override
     public void onCreate() {
@@ -139,6 +143,9 @@ public class CountTimeService extends Service {
             Log.d(TAG, "@Youtube");
             stopForeground(true);
 
+/*
+Intent
+to Youtube
             String value = mSharedPreferences.getString(
                     getString(R.string.pref_youtube_key),
                     getResources().getString(R.string.pref_youtube_default));
@@ -148,6 +155,7 @@ public class CountTimeService extends Service {
                     .putExtra("query", value)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+*/
 
 
             List<ApplicationInfo> appInfoList = mPackageManager.getInstalledApplications(0);
@@ -181,6 +189,7 @@ public class CountTimeService extends Service {
             // MainActivityへBroadcastを飛ばす処理をTrigger
             String message = "@Message from CountTimeService[タスク終了]";
             sendBroadCast(message);
+            startActivity(new Intent(CountTimeService.this, NotifyEndActivity.class));
         }
     }
 

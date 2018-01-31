@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#D4E157"
+    android:background="@color/report_list_background"
     android:orientation="horizontal">
 
     <ImageView
@@ -28,7 +28,7 @@
             android:id="@+id/report_total_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#E65100"
+            android:textColor="@color/report_list_text"
             android:textSize="20sp" />
     </LinearLayout>
 </LinearLayout>

@@ -10,11 +10,4 @@
         android:key="@string/pref_limit_time_key"
         android:title="@string/pref_limit_time_label"/>
 
-    <EditTextPreference
-        android:defaultValue="@string/pref_youtube_default"
-        android:key="@string/pref_youtube_key"
-        android:inputType="number"
-        android:selectAllOnFocus="true"
-        android:title="@string/pref_youtube_label"/>
-
 </PreferenceScreen>

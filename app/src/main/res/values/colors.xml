@@ -8,4 +8,8 @@
     <color name="colorButtonUnusable">#BDBDBD</color>
     <color name="colorTabUnusable">#9575CD</color>
     <color name="colorButtonGradient">#FF9100</color>
+    <color name="transparent">#00000000</color>
+    <color name="report_list_background">#FFCDD2</color>
+    <color name="report_list_text">#E65100</color>
+    <color name="empty_background">#EEEEEE</color>
 </resources>

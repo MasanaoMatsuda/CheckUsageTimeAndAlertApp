@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/colorPrimary">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="matrix"
+        android:layout_gravity="center"
+        android:src="@drawable/icon_punctime" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="64dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:background="@drawable/stateful_button_design"
+        android:stateListAnimator="@null"
+        android:onClick="backToMain"
+        android:text="@string/back_to_main"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="20sp" />
+</FrameLayout>

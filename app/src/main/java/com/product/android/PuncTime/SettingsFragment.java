@@ -59,8 +59,6 @@ public class SettingsFragment extends PreferenceFragmentCompat
             if (prefIndex >= 0) {
                 listPreference.setSummary(listPreference.getEntries()[prefIndex]);
             }
-        } else if (preference instanceof EditTextPreference) {
-            preference.setSummary(value);
         }
     }
 }

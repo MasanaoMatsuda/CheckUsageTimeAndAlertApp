@@ -28,9 +28,12 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.CycleInterpolator;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -49,8 +52,13 @@ public class MainFragment extends Fragment
 
     private Button mButtonStart;
     private Button mButtonStop;
+    private FloatingActionButton mFab;
+    private Button mButtonToast;
     private TextView mLimitTimeTextView;
     private SharedPreferences mSharedPreferences;
+    private ImageView mImg;
+    private RotateAnimation mRotateAnim;
+
 
     public MainFragment() {
         // Required empty public constructor
@@ -62,28 +70,37 @@ public class MainFragment extends Fragment
                              Bundle savedInstanceState) {
         Log.i(TAG, "@onCreateVew in Fragment");
 
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
         // UIの初期化（Preferenceの設定内容・onSaveInstanceStateの保存内容を表示）
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mButtonStart = (Button) rootView.findViewById(R.id.stats_btn);
         mButtonStop = (Button) rootView.findViewById(R.id.stop_btn);
         mLimitTimeTextView = (TextView) rootView.findViewById(R.id.limit_time);
-        FloatingActionButton fabSettings = (FloatingActionButton) rootView.findViewById(R.id.fab_settings);
+        mFab = (FloatingActionButton) rootView.findViewById(R.id.fab_settings);
+        mButtonToast = (Button)rootView.findViewById(R.id.transparent_toast_button);
+        mImg = (ImageView) rootView.findViewById(R.id.animation_img);
 
 
+        // アニメーションをセット
+        mRotateAnim = new RotateAnimation(
+                0.0f, 360.0f,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f);
+        mRotateAnim.setInterpolator(new LinearInterpolator());
+        mRotateAnim.setDuration(1000 * 10);
+        mRotateAnim.setRepeatCount(Animation.INFINITE);
+
+
+        // SharedPreferenceのリスナーをセット
         Log.i(TAG, "@setupSharedPreferences");
-
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
 
-
-        /*
-        * clickListenerのセット(for Start, Stop and Floating Action Button)
-        * */
+        // clickListenerのセット(Start/Stop/FAB)
         mButtonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 // UsageEventsを取得するための設定を確認　
                 boolean checkUsageStats = checkForPermission(getContext());
                 if (!checkUsageStats) {
@@ -99,31 +116,13 @@ public class MainFragment extends Fragment
                     return;
                 }
 
+                // 通知のキャンセル
+                NotificationUtils.cancelNotification(getContext());
 
-                /*
-                * 設定時間経過時に流すYoutubeの楽曲が指定されているかをチェックする
-                * （指定されていない場合はAlertDialogを出して設定画面に誘導）
-                * */
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                String value = sharedPreferences.getString(
-                        getString(R.string.pref_youtube_key),
-                        "");
-                if (value.equals(getString(R.string.pref_youtube_default)) | value.equals("")) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    builder.setMessage(getString(R.string.alert_msg_set_music))
-                            .setPositiveButton(getString(R.string.settings_title), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    startActivity(new Intent(getActivity(), SettingsActivity.class));
-                                }
-                            })
-                            .show();
-                    return;
-                }
+                // アニメーションを開始する
+                mImg.startAnimation(mRotateAnim);
 
-                /*
-                * Youtubeの設定が確認できたらServiceに処理を投げる
-                * */
+                // Serviceに処理を投げる
                 Log.i(TAG, "Start Button is pressed");
                 getActivity().startService(new Intent(getActivity(), CountTimeService.class));
                 changeButtonUsability(false);
@@ -133,29 +132,44 @@ public class MainFragment extends Fragment
         mButtonStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "Stop Button is pressed");
+
+                // アニメーションを停止する
+                mRotateAnim.cancel();
+
+                // Serviceを停止する
                 getActivity().stopService(new Intent(getActivity(), CountTimeService.class));
                 changeButtonUsability(true);
-                Log.i(TAG, "Stop Button is pressed");
             }
         });
 
-        fabSettings.setOnClickListener(new View.OnClickListener() {
+        mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getActivity(), SettingsActivity.class));
             }
         });
+
+        mButtonToast.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getContext(), R.string.setting_fab_disabled, Toast.LENGTH_SHORT)
+                        .show();
+            }
+        });
+
         return rootView;
     }
+
 
     @Override
     public void onResume() {
         super.onResume();
-        NotificationUtils.cancelNotification(getContext());
 
         if (isMyServiceRunning(CountTimeService.class)) {
             Log.i(TAG, "@isMyServiceRunning: True");
             changeButtonUsability(false);
+            mImg.startAnimation(mRotateAnim);
         } else {
             Log.i(TAG, "@isMyServiceRunning: false");
             changeButtonUsability(true);
@@ -163,10 +177,16 @@ public class MainFragment extends Fragment
 
         String limitTime = mSharedPreferences.getString(
                 getString(R.string.pref_limit_time_key),
-                getResources().getString(R.string.pref_limit_time_30_value));
+                getResources().getString(R.string.pref_limit_time_15_value));
         String limitValue = limitTime.split("分")[0];
         mLimitTimeTextView.setText(limitValue);
+    }
 
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mRotateAnim.cancel();
     }
 
 
@@ -176,14 +196,13 @@ public class MainFragment extends Fragment
 
         PreferenceManager.getDefaultSharedPreferences(getContext())
                 .unregisterOnSharedPreferenceChangeListener(this);
-
         super.onDestroy();
     }
 
+
     /*
     *  【HelperMethod】
-    *  UsageStatsのパーミッションを確認するため
-    * */
+    *  UsageStatsのパーミッションを確認するため* */
     public boolean checkForPermission(Context context) {
         Log.i(TAG, "@checkForPermission");
 
@@ -216,31 +235,20 @@ public class MainFragment extends Fragment
 
     /*
     * 【SharedPreference関連】
-    * ①onCreate()にてPreferenceをUIに反映する処理
-    * ②OnSharedPreferenceChangeListenerをレジスト（アンレジストはonDestroy()にて）
-    * */
-    private void setupSharedPreferences() {
-    }
-
-    /*
-    * 【SharedPreference関連】
-    * Preferenceが変更されたときにトリガーされる処理
-    * */
+    * Preferenceが変更されたときにトリガーされる処理* */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Log.i(TAG, "@onSharedPreferenceChanged");
 
         if (key.equals(getString(R.string.pref_limit_time_key))) {
-            mLimitTimeTextView.setText(sharedPreferences.getString(
-                    key, getResources().getString(R.string.pref_youtube_default)));
+            mLimitTimeTextView.setText(sharedPreferences.getString(key, ""));
         }
     }
 
 
     /*
     * 【HelperMethod】
-    * Start・StopボタンのService起動状態に応じた有効・無効化
-    * */
+    * Start・StopボタンのService起動状態に応じた有効・無効化* */
     private void changeButtonUsability(boolean bool) {
         Log.i(TAG, "@changeButtonUsability");
 
@@ -252,6 +260,8 @@ public class MainFragment extends Fragment
             mButtonStop.setEnabled(false);
             mButtonStop.setTextColor(0xffaaaaaa);
             mButtonStop.setElevation(0);
+            mFab.setEnabled(true);
+            mButtonToast.setEnabled(false);
         } else {
             mButtonStart.setEnabled(false);
             mButtonStart.setTextColor(0xffaaaaaa);
@@ -260,13 +270,15 @@ public class MainFragment extends Fragment
             mButtonStop.setTextColor(0xff4200b7);
             mButtonStop.setElevation(
                     convertDpToPixel(BUTTON_ELEVATION_SIZE, getContext()));
+            mFab.setEnabled(false);
+            mButtonToast.setEnabled(true);
         }
     }
 
+
     /*
     * 【HelperMethod】
-    * diを指定したらpixel値に変換するメソッド
-    * */
+    * diを指定したらpixel値に変換するメソッド* */
     public static float convertDpToPixel(float dp, Context context) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         return dp * metrics.density;

@@ -36,18 +36,29 @@ public class UsageReportFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_report, container, false);
-        mDate = (TextView) rootView.findViewById(R.id.report_page_date);
-        mStartTime = (TextView) rootView.findViewById(R.id.report_page_time_start);
-        mEndTime = (TextView) rootView.findViewById(R.id.report_page_time_end);
-        mTotalTime = (TextView) rootView.findViewById(R.id.report_page_time_total);
-        mUsageList = (ListView) rootView.findViewById(R.id.report_page_usage_list);
-        mPackageManager = getActivity().getPackageManager();
-        mFormatTime = new SimpleDateFormat("H:mm", Locale.JAPAN);
-        mFormatDate = new SimpleDateFormat("YYYY/ M/ d", Locale.JAPAN);
+        View view = null;
+        try {
+            SerializableUsageStats deSerializableData = deSerialize();
+            if (deSerializableData == null) {
+                view = inflater.inflate(R.layout.fragment_empty, container, false);
+            } else {
+                // Inflate the layout for this fragment
+                View rootView = inflater.inflate(R.layout.fragment_report, container, false);
+                mDate = (TextView) rootView.findViewById(R.id.report_page_date);
+                mStartTime = (TextView) rootView.findViewById(R.id.report_page_time_start);
+                mEndTime = (TextView) rootView.findViewById(R.id.report_page_time_end);
+                mTotalTime = (TextView) rootView.findViewById(R.id.report_page_time_total);
+                mUsageList = (ListView) rootView.findViewById(R.id.report_page_usage_list);
+                mPackageManager = getActivity().getPackageManager();
+                mFormatTime = new SimpleDateFormat("H:mm", Locale.JAPAN);
+                mFormatDate = new SimpleDateFormat("YYYY/ M/ d", Locale.JAPAN);
 
-        return rootView;
+                view = rootView;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return view;
     }
 
     @Override

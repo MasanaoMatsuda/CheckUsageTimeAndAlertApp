@@ -38,7 +38,6 @@ class NotificationUtils {
                 new NotificationCompat.Builder(context, REMINDER_NOTIFICATION_CHANNEL_ID);
         notificationBuilder.setColor(ContextCompat.getColor(context, R.color.colorPrimary))
                 .setSmallIcon(R.drawable.ic_notification_punctime)
-                .setLargeIcon(largeIcon(context))
                 .setContentTitle(context.getString(R.string.on_going_reminder_notification_title))
                 .setContentText(context.getString(R.string.on_going_reminder_notification_body))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(
@@ -75,7 +74,6 @@ class NotificationUtils {
                 new NotificationCompat.Builder(context, REMINDER_NOTIFICATION_CHANNEL_ID);
         notificationBuilder.setColor(ContextCompat.getColor(context, R.color.colorPrimary))
                 .setSmallIcon(R.drawable.ic_notification_punctime)
-                .setLargeIcon(largeIcon(context))
                 .setContentTitle(context.getString(R.string.finish_service_reminder_notification_title))
                 .setContentText(context.getString(R.string.finish_service_reminder_notification_body))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(
@@ -100,11 +98,6 @@ class NotificationUtils {
                 REMINDER_PENDING_INTENT_ID,
                 startActivityIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    static Bitmap largeIcon(Context context) {
-        Resources res = context.getResources();
-        return BitmapFactory.decodeResource(res, R.drawable.ic_notification_punctime);
     }
 
 

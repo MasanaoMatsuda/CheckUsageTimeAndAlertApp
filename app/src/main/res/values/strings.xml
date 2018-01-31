@@ -15,7 +15,14 @@
     <string name="report_page_label_about">約</string>
     <string name="report_page_label_min">分</string>
     <string name="report_page_detail">詳細</string>
-    <string name="report_page_announce_no_data">データがありません...</string>
+    <string name="report_page_announce_no_data">データがありません..</string>
+    <string name="title_bar_finished">終了しました</string>
+    <string name="back_to_main">メイン画面に戻る</string>
+    <string name="no_data">データがありません..</string>
+
+
+    <!-- Toast message -->
+    <string name="setting_fab_disabled">【設定変更不可】\nPuncTime実行中</string>
 
 
     <!-- Settings-->
@@ -25,7 +32,7 @@
 
 
     <!-- Labels For Limit Time Preference -->
-    <string name="pref_limit_time_label">制限時間</string>
+    <string name="pref_limit_time_label">時間設定</string>
     <string name="pref_limit_time_label_5">5分</string>
     <string name="pref_limit_time_label_10">10分</string>
     <string name="pref_limit_time_label_15">15分</string>
@@ -41,11 +48,6 @@
     <string name="pref_limit_time_60_value" translatable="false">60分</string>
 
 
-    <!-- Strings For Youtube Preference-->
-    <string name="pref_youtube_label">楽曲名（URLも可）</string>
-    <string name="pref_youtube_key" translatable="false">alarm_youtube_sound</string>
-    <string name="pref_youtube_default">お気に入りの曲名を登録！</string>
-
 
     <!--Notifications-->
     <string name="main_notification_channel_name">Primary</string>
@@ -56,6 +58,5 @@
 
 
     <!--Alert Dialog-->
-    <string name="alert_msg_set_music">「設定」ページにて、好きな曲名を登録してください。\nスマホ使用時間が設定タイムに達すると指定された楽曲を流してお知らせします</string>
     <string name="alert_msg_get_usage_stats_permission">「使用履歴へのアクセス」を許可してください。\n時間計測に必要です。</string>
 </resources>
